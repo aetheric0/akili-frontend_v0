@@ -1,0 +1,55 @@
+.modal-overlay {
+  position: fixed; /* Sit on top of the page content */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* Black background with opacity */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Make sure it's on top */
+}
+
+.modal-box {
+    background: rgb(59, 57, 57);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+
+    /* Ensure content and actions are stacked vertically */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content {
+  color: white;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subscribe-btn, .trial-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.subscribe-btn {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+.trial-btn {
+  background-color: #f0f0f0; /* Light grey */
+  color: #333;
+}
