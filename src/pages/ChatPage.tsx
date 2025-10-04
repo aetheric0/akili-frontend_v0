@@ -1,44 +1,38 @@
+import Header from "../components/ui/Header";
 import { useAppState } from "../context/AuthContext";
 import ChatWindow from "../features/chat/ChatWindow";
 import UploadForm from "../features/upload/UploadForm";
 
-const ChatPage: React.FC = () => {
-    const { sessionId } = useAppState();
+const ChatPage: React.FC<{ isSidebarOpen: boolean, toggleSidebar: () => void }> = ({ toggleSidebar }) => {
+    const sessionId = useAppState(state => state.sessionId);
+
+    // Show reset hint if a session is active
+    const showResetHint = sessionId !== null; 
 
     return (
-        // FIX: Added p-4 for margin/padding around the central chat box, improving layout.
-        <main className="bg-gray-950 flex-grow p-4"> 
-            {/* Custom CSS (Simulating /styles/global.css) */}
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 8px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #1f2937;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background-color: #4b5563;
-                    border-radius: 20px;
-                    border: 2px solid #1f2937;
-                }
-                .prose { color: inherit; }
-                .prose h1, .prose h2, .prose h3 { margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 700; }
-                .prose p { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-                .prose ul, .prose ol { padding-left: 1.5em; margin-bottom: 0.5rem; }
-                .prose ul { list-style-type: disc; }
-                .prose ol { list-style-type: decimal; }
-                .prose strong { font-weight: 700; color: #fff; }
-            `}</style>
-            <div className="container mx-auto max-w-4xl h-full">
-                {/* Conditional render: ChatWindow if session exists, else UploadForm (LandingPage view) */}
-                {sessionId ? (
+        <div className="flex-grow flex flex-col relative overflow-hidden bg-gray-950"> 
+            
+            <Header toggleSidebar={toggleSidebar} />
+            
+            <div className="flex-grow w-full overflow-y-auto custom-scrollbar px-4 pt-4 pb-28"> 
+                <div className="max-w-4xl mx-auto">
+                    {showResetHint && (
+                        <div className="text-center p-4 bg-gray-800 rounded-lg text-yellow-300 border border-yellow-700/50 mb-4">
+                            <p className="font-semibold">Current Study Session Active.</p>
+                            <p className="text-sm">To upload a *new* document, use the <b className="text-white">Start New Study</b> button in the sidebar.</p>
+                        </div>
+                    )}
                     <ChatWindow />
-                ) : (
-                    <UploadForm />
-                )}
+                </div>
             </div>
-        </main>
+            
+            {/* Fixed Chat/Upload Input at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 bg-gray-950/95 backdrop-blur-sm shadow-2xl p-4 md:p-6 flex justify-center border-t border-gray-800">
+                <div className="w-full max-w-4xl">
+                    <UploadForm />
+                </div>
+            </div>
+        </div>
     );
 };
-
 export default ChatPage;

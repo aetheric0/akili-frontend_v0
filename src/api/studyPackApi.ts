@@ -3,11 +3,7 @@
 // import { ChatMessage } from '../types'; // assuming ChatMessage is imported
 
 import axios, { type AxiosError } from "axios";
-
-// Define the shape of the successful response data
-interface ChatResponse {
-    response: string;
-}
+import { CHAT_ENDPOINT } from "../types";
 
 /**
  * Sends a chat message to the Akili AI backend for follow-up questions.
@@ -15,43 +11,46 @@ interface ChatResponse {
  * @param message The user's query.
  * @returns The AI's response text.
  */
-export async function sendChatMessageApi(
-    sessionId: string, 
-    message: string
-): Promise<string> {
-    try {
-        // This is the core API call logic
-        const response = await axios.post('http://localhost:8000/upload/chat', { 
-            session_id: sessionId, 
-            message: message 
-        });
+export async function sendChatMessageApi(sessionId: string, message: string): Promise<string> {
+    // Implementing exponential backoff for API calls
+    const MAX_RETRIES = 3;
+    const INITIAL_DELAY = 1000;
 
-        const data = response.data as ChatResponse;
-        
-        // Handle empty response gracefully
-        return data.response || "Received empty response from Akili AI.";
-
-    } catch (error) {
-        // Robust error handling logic
-        const err = error as AxiosError<{ detail?: string }>;
-        let errorMessage: string;
-        
-        if (err.response) {
-            // Server responded with a status code outside the 2xx range
-            const detail = err.response.data?.detail;
-            errorMessage = `API Error (${err.response.status}): ${detail || err.message}`;
-        } else if (err.request) {
-            // Request was made but no response received
-            errorMessage = "No response received from server. Check network connection.";
-        } else {
-            // Something happened in setting up the request
-            errorMessage = `Request Setup Error: ${err.message}`;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+            const response = await axios.post(CHAT_ENDPOINT, { 
+                session_id: sessionId, 
+                message: message 
+            });
+            const data = response.data as { response: string };
+            return data.response || "Received empty response from Akili AI.";
+        } catch (error) {
+            const err = error as AxiosError<{ detail?: string }>;
+            
+            // Check for status codes that suggest retrying (e.g., 5xx errors, 429 rate limit)
+            const shouldRetry = err.response && (err.response.status >= 500 || err.response.status === 429);
+            
+            if (attempt < MAX_RETRIES - 1 && shouldRetry) {
+                const delay = INITIAL_DELAY * Math.pow(2, attempt);
+                // Wait without logging the delay to the console as an error
+                await new Promise(resolve => setTimeout(resolve, delay)); 
+            } else {
+                // Final failure, throw the detailed error
+                let errorMessage = "An unknown network error occurred.";
+                
+                if (err.response) {
+                    const detail = err.response.data?.detail;
+                    errorMessage = `API Error (${err.response.status}): ${detail || err.message}`;
+                } else if (err.request) {
+                    errorMessage = "No response received from server. Check network connection.";
+                } else {
+                    errorMessage = `Request Setup Error: ${err.message}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
         }
-
-        // Throw the translated error message for the Zustand store to catch
-        throw new Error(errorMessage);
     }
+    // Should be unreachable if logic above is correct, but for type safety:
+    throw new Error("Failed to send chat message after multiple retries.");
 }
-
-// export async function uploadDocumentApi(...) { ... } 
-// Other API functions would also live here.

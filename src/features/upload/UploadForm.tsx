@@ -1,100 +1,140 @@
 import axios, { AxiosError } from "axios";
-import { UploadCloud, Loader2 } from "lucide-react";
-import { useState } from "react";
-import AlertBanner from "../../components/ui/AlertBanner";
+import { Upload, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import ChatInput from "../../components/chat/ChatInput";
 import { useAppState } from "../../context/AuthContext";
-import type { InitialMessagePayload } from "../../types";
+import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage } from "../../types";
 
 const UploadForm: React.FC = () => {
-    const { startNewSession, setLoading, isLoading, uploadError, setUploadError } = useAppState();
+    const sessionId = useAppState(state => state.sessionId);
+    const isLoading = useAppState(state => state.isLoading);
+    const uploadError = useAppState(state => state.uploadError);
+    const setUploadError = useAppState(state => state.setUploadError);
+    const startNewSession = useAppState(state => state.startNewSession);
+
     const [file, setFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0] || null;
-        setFile(selectedFile);
-        if (selectedFile && selectedFile.type !== 'application/pdf') {
-            setUploadError("Only PDF documents are supported.");
-            setFile(null);
-        } else {
-            setUploadError(null);
+
+    
+    const ACCEPTED_FILE_MIMES = 
+        'application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain';
+        
+    useEffect(() => {
+        if (uploadError) {
+            const timer = setTimeout(() => setUploadError(null), 5000);
+            return () => clearTimeout(timer);
         }
-    };
+    }, [uploadError, setUploadError]);
 
-    const handleUpload = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!file) return;
+    const handleFileUpload = useCallback(async (event: React.FormEvent) => {
+        event.preventDefault();
+        
+        if (!file) {
+            setUploadError("Please select a document to upload.");
+            return;
+        }
 
-        setLoading(true);
+        setIsUploading(true);
         setUploadError(null);
 
+        const formData = new FormData();
+        formData.append('file', file);
+
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            // --- CRITICAL FIX HERE: Ensure we hit the correct /upload/document endpoint ---
+            const response = await axios.post(DOCUMENT_UPLOAD_ENDPOINT, formData, {
+                headers: {
+                    // Axios automatically sets 'Content-Type: multipart/form-data' 
+                    // when sending a FormData object, but explicitly setting it is safer.
+                    'Content-Type': 'multipart/form-data', 
+                },
+            });
 
-            // API call logic (Simulating /api/studyPackApi.ts)
-            const response = await axios.post('http://localhost:8000/upload/document', formData);
-            const data = response.data as { session_id: string, response: string };
+            const data = response.data as { session_id: string; response: string };
             
-            const { session_id, response: initialResponseText } = data;
+            const initialMessage: ChatMessage = { 
+                role: 'model', 
+                text: data.response || "Document uploaded successfully. Ready to begin!" 
+            };
 
-            if (!session_id || !initialResponseText) {
-                 throw new Error("Invalid response format from server. Missing session_id or response.");
-            }
-
-            // Correctly assign the payload type to satisfy the startNewSession signature
-            const initialMessagePayload: InitialMessagePayload = { text: initialResponseText };
-            startNewSession(session_id, initialMessagePayload);
-
+            startNewSession(data.session_id, initialMessage);
+            setFile(null); 
+            
         } catch (error) {
             const err = error as AxiosError<{ detail?: string }>;
-            let errorMessage = err.message;
-
+            let errorMessage = "An unknown network error occurred during upload.";
+            
             if (err.response) {
-                errorMessage = `API Error (${err.response.status}): ${err.response.data?.detail || err.message}`;
+                const detail = err.response.data?.detail;
+                errorMessage = `API Error (${err.response.status}): ${detail || err.message}`;
+            } else if (err.request) {
+                errorMessage = "No response received from server. Check network connection.";
+            } else {
+                errorMessage = `Request Setup Error: ${err.message}`;
             }
+            
+            setUploadError("Upload Failed: " + errorMessage);
 
-            console.error("Upload failed:", error);
-            setUploadError(`Upload Failed: ${errorMessage}`);
         } finally {
-            setLoading(false);
+            setIsUploading(false);
         }
-    };
+    }, [file, setUploadError, startNewSession]);
+    
+    const isFormDisabled = sessionId !== null;
 
+    const isSubmitDisabled = isFormDisabled || isLoading || isUploading || sessionId !== null;
+    
+    
     return (
-        <div className="flex flex-col items-center justify-center p-8 bg-gray-800 rounded-xl shadow-2xl max-w-lg mx-auto text-white mt-16">
-            <AlertBanner message={uploadError} type="error" onClose={() => setUploadError(null)} />
+        <div className="w-full">
+            {uploadError && (
+                <div className="mb-2 p-3 text-sm font-medium text-red-100 bg-red-600 rounded-lg">
+                    {uploadError}
+                </div>
+            )}
+            
+            {/* Conditional rendering for the upload form when no session is active */}
+            {!sessionId && (
+                <form onSubmit={handleFileUpload} className="flex items-center space-x-2 p-2 bg-gray-800 rounded-lg shadow-inner">
+                    <label 
+                        htmlFor="pdf-upload" 
+                        className={`flex items-center justify-center p-3 rounded-lg cursor-pointer transition-colors ${
+                            isFormDisabled ? 'bg-gray-600 text-gray-400' : 'bg-yellow-600 text-gray-900 hover:bg-yellow-500'
+                        }`}
+                        title="Upload a Document (PDF, DOCX, TXT)"
+                    >
+                        <Upload className="w-5 h-5" />
+                    </label>
+                    <input
+                        id="pdf-upload"
+                        type="file"
+                        accept={ACCEPTED_FILE_MIMES} 
+                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                        className="hidden"
+                        disabled={isSubmitDisabled}
+                    />
+                    
+                    <span className="flex-grow text-sm truncate text-gray-400">
+                        {file ? file.name : "Select a PDF, DOCX, or TXT document..."}
+                    </span>
 
-            <UploadCloud className="w-16 h-16 text-green-500 mb-4" />
-            <h2 className="text-2xl font-bold mb-4">Start New Study Session</h2>
-            <p className="text-gray-400 mb-6 text-center">
-                Upload your **PDF document** to begin an Akili AI-powered chat session.
-            </p>
-            <form onSubmit={handleUpload} className="w-full space-y-4">
-                <input 
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handleFileChange}
-                    className="w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-green-50 file:text-green-700
-                                hover:file:bg-green-100
-                    "
-                />
-                <button
-                    type="submit"
-                    disabled={!file || isLoading || !!uploadError}
-                    className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-semibold transition disabled:bg-gray-600 disabled:opacity-70"
-                >
-                    {isLoading ? (
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    ) : (
-                        <UploadCloud className="w-5 h-5 mr-2" />
-                    )}
-                    {isLoading ? 'Uploading...' : 'Upload & Chat'}
-                </button>
-            </form>
+                    <button
+                        type="submit"
+                        disabled={isSubmitDisabled || !file}
+                        className={`px-4 py-3 rounded-lg font-semibold transition-colors ${
+                            isSubmitDisabled || !file 
+                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                                : 'bg-blue-600 text-white hover:bg-blue-500'
+                        }`}
+                    >
+                        {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Start Study"}
+                    </button>
+                </form>
+            )}
+            
+            {/* Conditional rendering for the chat input when a session is active */}
+            {sessionId && <ChatInput />}
         </div>
     );
 };
