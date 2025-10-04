@@ -24,7 +24,7 @@ export interface AppState {
 }
 
 // --- API CONSTANTS ---
-export const API_BASE_URL = 'https://akili-wcqt.onrender.com';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 export const DOCUMENT_UPLOAD_ENDPOINT = `${API_BASE_URL}/upload/document`;
 export const CHAT_ENDPOINT = `${API_BASE_URL}/upload/chat`;
 export const HISTORY_ENDPOINT = `${API_BASE_URL}/session/history`;
