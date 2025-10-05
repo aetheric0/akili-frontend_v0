@@ -1,17 +1,21 @@
-const formatMarkdownToHTML = (text: string): string => {
-    // 1. Convert newlines to <br> tags
-    let html = text.replace(/\n/g, '<br>');
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
-    // 2. Convert **bold** and *italic* syntax to HTML tags
-    // Bold: finds text between **...**
-    html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    // Italic: finds text between *...*
-    html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+marked.use({
+  breaks: true,
+  renderer: {
+    heading(text) {
+      return `<h2>${text}</h2>`; // no auto IDs
+    },
+  },
+});
 
-    // 3. Handle list items (simple simulation for list-like text)
-    // Removed unnecessary escape character (\-) for cleaner regex.
-    html = html.replace(/(\d+\. |\* | - )/g, '<span style="display:inline-block; width: 1.5rem;"></span>$1');
+const formatMarkdownToHTML = async (text: string): Promise<string> => {
+    const cleaned = text
+    .replace(/(#+)([A-Za-z])/g, "$1 $2");
 
-    return html;
+  const html = await marked.parse(cleaned); // await handles both string or Promise<string>
+  return DOMPurify.sanitize(html);
 };
+
 export default formatMarkdownToHTML;

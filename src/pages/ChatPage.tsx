@@ -17,9 +17,9 @@ const ChatPage: React.FC<{ isSidebarOpen: boolean, toggleSidebar: () => void }> 
             <div className="flex-grow w-full overflow-y-auto custom-scrollbar px-4 pt-4 pb-28"> 
                 <div className="max-w-4xl mx-auto">
                     {showResetHint && (
-                        <div className="text-center p-4 bg-gray-800 rounded-lg text-yellow-300 border border-yellow-700/50 mb-4">
-                            <p className="font-semibold">Current Study Session Active.</p>
-                            <p className="text-sm">To upload a *new* document, use the <b className="text-white">Start New Study</b> button in the sidebar.</p>
+                        <div className="text-center p-4 bg-gray-800 rounded-lg border border-green-700 mb-4">
+                            <p className="font-semibold text-green-400">Current Study Session Active.</p>
+                            <p className="text-sm text-yellow-300">To upload a *new* document, use the <b className="text-white">Start New Study</b> button in the sidebar.</p>
                         </div>
                     )}
                     <ChatWindow />
