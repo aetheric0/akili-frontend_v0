@@ -21,7 +21,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   useEffect(() => {
     if (!isUser) {
       (async () => {
-        const html = await formatMarkdownToHTML(message.text);
+        const rawText =
+            typeof message.text === "string"
+                ? message.text
+                : ((message.text as any)?.text ?? JSON.stringify(message.text));
+
+const html = await formatMarkdownToHTML(rawText);
         setFormattedText(html);
       })();
     }
