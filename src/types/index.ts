@@ -5,6 +5,7 @@ export interface ChatMessage {
 }
 
 export interface AppState {
+    //  --- Core State ---
     isPaid: boolean;
     sessionId: string | null;
     chatHistory: ChatMessage[];
@@ -12,7 +13,12 @@ export interface AppState {
     isHydrating: boolean;
     uploadError: string | null;
     chatError: string | null;
-    
+
+    // --- Internal State ---
+    _hasHydrated: boolean;
+
+    // --- Setters ---
+    setHasHydrated: (hydrated: boolean) => void;
     setLoading: (loading: boolean) => void;
     setUploadError: (error: string | null) => void;
     setChatError: (error: string | null) => void;
@@ -24,7 +30,8 @@ export interface AppState {
 }
 
 // --- API CONSTANTS ---
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/';
+// export const API_BASE_URL = 'http://localhost:8000';
 export const DOCUMENT_UPLOAD_ENDPOINT = `${API_BASE_URL}/upload/document`;
 export const CHAT_ENDPOINT = `${API_BASE_URL}/upload/chat`;
 export const HISTORY_ENDPOINT = `${API_BASE_URL}/session/history`;

@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
         // Sidebar container
         <div 
             className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 border-r border-gray-800 p-4 transform transition-transform duration-300 ease-in-out 
-            md:relative md:flex md:flex-col md:min-h-screen ${sidebarClasses} justify-between`}
+            ${sidebarClasses} justify-between`}
         >
             {/* Top Section */}
             <div>

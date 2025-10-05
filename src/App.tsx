@@ -32,6 +32,8 @@ const App: React.FC = () => {
             setLoading(false); 
         }
     }, [sessionId, setLoading]); 
+    console.log('API URL:', import.meta.env.VITE_API_BASE_URL);
+
 
     return (
         <div className="min-h-screen flex bg-gray-950 text-white font-sans">
@@ -45,7 +47,7 @@ const App: React.FC = () => {
                 toggleSidebar={toggleSidebar} 
             />
             
-            <main className="flex-grow flex flex-col overflow-hidden">
+            <main className="flex-grow flex flex-col overflow-hidden md:ml-64">
                 {isPaid ? (
                     <ChatPage 
                         isSidebarOpen={isSidebarOpen} 
