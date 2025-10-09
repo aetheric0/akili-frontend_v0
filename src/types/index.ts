@@ -8,7 +8,7 @@ export interface SessionInfo {
     id: string;
     title: string;
     createdAt?: string;
-    [key: string]: unknown;
+    [key: string]: any;
 }
 
 
