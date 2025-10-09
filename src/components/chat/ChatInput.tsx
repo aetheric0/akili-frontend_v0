@@ -5,14 +5,14 @@ import { useAppState } from "../../context/AuthContext";
 const ChatInput: React.FC = () => {
     const isLoading = useAppState(state => state.isLoading);
     const sendChatMessage = useAppState(state => state.sendChatMessage);
-    const sessionId = useAppState(state => state.sessionId); 
+    const activeSessionId = useAppState(state => state.activeSessionId); 
     
     const [input, setInput] = useState('');
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         const trimmedInput = input.trim();
-        if (trimmedInput && !isLoading && sessionId) {
+        if (trimmedInput && !isLoading && activeSessionId) {
             sendChatMessage(trimmedInput);
             setInput('');
         }

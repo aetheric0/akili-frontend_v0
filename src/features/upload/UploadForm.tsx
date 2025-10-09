@@ -3,10 +3,11 @@ import { Upload, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import ChatInput from "../../components/chat/ChatInput";
 import { useAppState } from "../../context/AuthContext";
-import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage } from "../../types";
+import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage, type SessionInfo } from "../../types";
+import { getOrCreateGuestToken } from "../../utils/guestToken";
 
 const UploadForm: React.FC = () => {
-    const sessionId = useAppState(state => state.sessionId);
+    const activeSessionId = useAppState(state => state.activeSessionId);
     const isLoading = useAppState(state => state.isLoading);
     const uploadError = useAppState(state => state.uploadError);
     const setUploadError = useAppState(state => state.setUploadError);
@@ -41,24 +42,33 @@ const UploadForm: React.FC = () => {
         const formData = new FormData();
         formData.append('file', file);
 
+        const guestToken = getOrCreateGuestToken();
+
         try {
             // --- CRITICAL FIX HERE: Ensure we hit the correct /upload/document endpoint ---
-            const response = await axios.post(DOCUMENT_UPLOAD_ENDPOINT, formData, {
+            const api_response = await axios.post(DOCUMENT_UPLOAD_ENDPOINT, formData, {
                 headers: {
                     // Axios automatically sets 'Content-Type: multipart/form-data' 
                     // when sending a FormData object, but explicitly setting it is safer.
-                    'Content-Type': 'multipart/form-data', 
+                    'Authorization': `Bearer ${guestToken}`,
+                    'Content-Type': 'multipart/form-data',
                 },
             });
 
-            const data = response.data as { session_id: string; response: string };
+            const { session_id, response} = api_response.data;
+
+            const sessionInfo: SessionInfo = {
+                id: session_id,
+                title: file.name,
+                created_at: new Date().toISOString(),
+            }
             
             const initialMessage: ChatMessage = { 
                 role: 'model', 
-                text: data.response || "Document uploaded successfully. Ready to begin!" 
+                text: response || "Document uploaded successfully. Ready to begin!" 
             };
 
-            startNewSession(data.session_id, initialMessage);
+            startNewSession(sessionInfo, initialMessage);
             setFile(null); 
             
         } catch (error) {
@@ -81,9 +91,9 @@ const UploadForm: React.FC = () => {
         }
     }, [file, setUploadError, startNewSession]);
     
-    const isFormDisabled = sessionId !== null;
+    const isFormDisabled = activeSessionId !== null;
 
-    const isSubmitDisabled = isFormDisabled || isLoading || isUploading || sessionId !== null;
+    const isSubmitDisabled = isFormDisabled || isLoading || isUploading || activeSessionId !== null;
     
     
     return (
@@ -95,7 +105,7 @@ const UploadForm: React.FC = () => {
             )}
             
             {/* Conditional rendering for the upload form when no session is active */}
-            {!sessionId && (
+            {!activeSessionId && (
                 <form onSubmit={handleFileUpload} className="flex items-center space-x-2 p-2 bg-gray-800 rounded-lg shadow-inner">
                     <label 
                         htmlFor="pdf-upload" 
@@ -134,7 +144,7 @@ const UploadForm: React.FC = () => {
             )}
             
             {/* Conditional rendering for the chat input when a session is active */}
-            {sessionId && <ChatInput />}
+            {activeSessionId && <ChatInput />}
         </div>
     );
 };

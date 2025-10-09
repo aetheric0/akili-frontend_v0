@@ -11,7 +11,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const title = isUser ? "You" : "Akili AI";
   const bubbleClasses = isUser
     ? "bg-blue-600 self-end rounded-br-none"
-    : "bg-gray-800 self-start rounded-tl-none border border-gray-700";
+    : "bg-gray-800 self-start rounded-tl-none border border-gray-700 shadow-[0_0_12px_rgba(255,255,255,0.05)]";
   const titleColor = isUser ? "text-blue-200" : "text-yellow-400";
 
   const [formattedText, setFormattedText] = useState<string>(
@@ -51,7 +51,7 @@ const html = await formatMarkdownToHTML(rawText);
 
       {/* Optional subtle glow for AI responses */}
       {!isUser && (
-        <div className="mt-3 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+        <div className="mt-6 mb-1 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
       )}
     </div>
   );

@@ -8,7 +8,7 @@ import Sidebar from "./components/ui/Sidebar";
 
 const App: React.FC = () => {
     const isPaid = useAppState(state => state.isPaid);
-    const sessionId = useAppState(state => state.sessionId);
+    const activeSessionId = useAppState(state => state.activeSessionId);
     const setLoading = useAppState(state => state.setLoading); 
     
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -18,21 +18,20 @@ const App: React.FC = () => {
 
     // Session ID Persistence (Save/Load)
     useEffect(() => {
-        if (sessionId) {
-            const sessionData = JSON.stringify({ sessionId: sessionId });
+        if (activeSessionId) {
+            const sessionData = JSON.stringify({ sessionId: activeSessionId });
             localStorage.setItem(AKILI_STATE_KEY, sessionData);
         } else {
             localStorage.removeItem(AKILI_STATE_KEY); 
         }
-    }, [sessionId]); 
+    }, [activeSessionId]); 
 
     // FIX: Clear a potentially stuck 'isLoading' state on load
     useEffect(() => {
-        if (sessionId) {
+        if (activeSessionId) {
             setLoading(false); 
         }
-    }, [sessionId, setLoading]); 
-    console.log('API URL:', import.meta.env.VITE_API_BASE_URL);
+    }, [activeSessionId, setLoading]); 
 
 
     return (

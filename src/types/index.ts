@@ -4,28 +4,49 @@ export interface ChatMessage {
     text: string;
 }
 
+export interface SessionInfo {
+    id: string;
+    title: string;
+    createdAt?: string;
+    [key: string]: unknown;
+}
+
+
+// -- 1. GLOBAL APP STATE ----------------------------------------
 export interface AppState {
-    //  --- Core State ---
-    isPaid: boolean;
-    sessionId: string | null;
-    chatHistory: ChatMessage[];
-    isLoading: boolean;
-    isHydrating: boolean;
-    uploadError: string | null;
-    chatError: string | null;
+    //  === Core State (Persistent) =========================================
+    isPaid: boolean;                                // User access status
+    sessions: SessionInfo[];                        // All chat/document sessions
+    activeSessionId: string | null;                 // Currenctly active session
+    chatHistories: Record<string, ChatMessage[]>;   // Per-session chat storage
 
-    // --- Internal State ---
-    _hasHydrated: boolean;
+    // === B. UI / Loading State =========================================
+    isLoading: boolean;                             // Indicates active API call or chat
+    isHydrating: boolean;                           // True during persistence rehydration
+    uploadError: string | null;                     // Error from file upload
+    chatError: string | null;                       // Error during chat message
 
-    // --- Setters ---
+    // === C. Internal State (Non-Persistent) =========================================
+    _hasHydrated: boolean;                          // Used by Zustand after rehydration
+
+    // === D. Actions / State Mutators =========================================
+    // --- Hydration & Status ---
     setHasHydrated: (hydrated: boolean) => void;
     setLoading: (loading: boolean) => void;
+    grantAccess: () => void;
+
+    // --- Error Handling
     setUploadError: (error: string | null) => void;
     setChatError: (error: string | null) => void;
-    startNewSession: (id: string, initialMessage: ChatMessage) => void;
-    addMessage: (message: ChatMessage) => void;
+
+    // --- Session Management ---
+    fetchSessions: () => Promise<void>;
+    setActiveSession: (sessionId: string | null) => void;
+    startNewSession: (sessionInfo: SessionInfo, initialMessage: ChatMessage) => void;
     clearSession: () => void;
-    grantAccess: () => void;
+
+    // --- Chat Management ---
+    addMessage: (message: ChatMessage) => void;
     sendChatMessage: (message: string) => Promise<void>;
 }
 

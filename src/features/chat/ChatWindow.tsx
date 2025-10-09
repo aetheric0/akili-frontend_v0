@@ -1,21 +1,28 @@
 import { Loader2, MessageSquare } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useAppState } from "../../context/AuthContext";
 import ChatBubble from "../../components/chat/ChatBubble";
 
 const ChatWindow: React.FC = () => {
-    const chatHistory = useAppState(state => state.chatHistory);
-    const sessionId = useAppState(state => state.sessionId);
+    const activeSessionId = useAppState(state => state.activeSessionId);
+    const chatHistories = useAppState(state => state.chatHistories);
     const isLoading = useAppState(state => state.isLoading);
     const chatError = useAppState(state => state.chatError);
 
+    // 2. Derive the active chat history from the activeSessionid
+
     const chatEndRef = useRef<HTMLDivElement>(null);
+
+    const activeChatHistory = useMemo(() => {
+        return activeSessionId ? chatHistories[activeSessionId] || [] : [];
+    }, [activeSessionId, chatHistories])
+    console.log('Chat History: ', chatHistories.activeSessionId)
 
     useEffect(() => {
         if (chatEndRef.current) {
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [chatHistory, isLoading]);
+    }, [activeChatHistory, isLoading]);
     
     return (
         <>
@@ -26,9 +33,9 @@ const ChatWindow: React.FC = () => {
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
             `}</style>
             
-            <div className="flex flex-col space-y-4"> 
+            <div className="flex flex-col space-y-4 pb-24 custom-scrollbar"> 
                 
-                {sessionId && chatHistory.map((msg, index) => (
+                {activeSessionId && activeChatHistory.map((msg, index) => (
                     <ChatBubble key={index} message={msg} />
                 ))}
                 
@@ -45,7 +52,7 @@ const ChatWindow: React.FC = () => {
                     </div>
                 )}
                 
-                {!sessionId && (
+                {!activeSessionId && (
                     <div className="flex flex-col items-center justify-center text-center text-gray-500 p-8 min-h-[50vh]">
                          <MessageSquare className="w-12 h-12 mb-4" />
                         <p className="text-lg">Upload a document to start your study session with Akili AI.</p>
