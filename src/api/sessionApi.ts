@@ -1,14 +1,13 @@
 import axios from "axios";
 import type { SessionInfo } from '../types/index';
 import { getOrCreateGuestToken } from "../utils/guestToken";
-
-const SESSIONS_ENDPOINT = 'http://localhost:8000/sessions'
+import { HISTORY_ENDPOINT } from "../types/index";
 
 const sessionApi = async (): Promise<SessionInfo[]> => {
     try {
         const guestToken = getOrCreateGuestToken();
 
-        const response = await axios.get(SESSIONS_ENDPOINT, {
+        const response = await axios.get(HISTORY_ENDPOINT, {
             headers: {
                 Authorization: `Bearer ${guestToken}`
             }

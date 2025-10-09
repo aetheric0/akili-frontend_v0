@@ -55,5 +55,5 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 // export const API_BASE_URL = 'http://localhost:8000';
 export const DOCUMENT_UPLOAD_ENDPOINT = `${API_BASE_URL}/upload/document`;
 export const CHAT_ENDPOINT = `${API_BASE_URL}/upload/chat`;
-export const HISTORY_ENDPOINT = `${API_BASE_URL}/session/history`;
+export const HISTORY_ENDPOINT = `${API_BASE_URL}/sessions`;
 export const AKILI_STATE_KEY = 'akili-ai-session-state'; 
