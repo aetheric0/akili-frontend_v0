@@ -16,7 +16,6 @@ const ChatWindow: React.FC = () => {
     const activeChatHistory = useMemo(() => {
         return activeSessionId ? chatHistories[activeSessionId] || [] : [];
     }, [activeSessionId, chatHistories])
-    console.log('Chat History: ', chatHistories.activeSessionId)
 
     useEffect(() => {
         if (chatEndRef.current) {

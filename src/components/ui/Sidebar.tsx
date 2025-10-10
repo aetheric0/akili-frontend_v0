@@ -1,86 +1,157 @@
-import { X, Zap, PlusCircle } from "lucide-react";
+import { X, Zap, PlusCircle, Trash2, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useEffect } from "react";
 import { useAppState } from "../../context/AuthContext";
+import AchievementsWidget from "./AchievementWidget";
 
 interface SidebarProps {
-    isSidebarOpen: boolean;
-    toggleSidebar: () => void;
+    isMobileOpen: boolean;
+    isDesktopCollapsed: boolean;
+    toggleMobileSidebar: () => void;
+    toggleDesktopSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
-    // 1. Get the new state properties from Zustand
-    const sessions = useAppState(state => state.sessions);
-    const activeSessionId = useAppState(state => state.activeSessionId);
-    const setActiveSession = useAppState(state => state.setActiveSession);
-    const fetchSessions = useAppState(state => state.fetchSessions);
+const Sidebar: React.FC<SidebarProps> = ({
+    isMobileOpen,
+    isDesktopCollapsed,
+    toggleMobileSidebar,
+    toggleDesktopSidebar,
+}) => {
+    const { sessions, activeSessionId, setActiveSession, fetchSessions, clearSession } = useAppState();
 
-    // 2. Fetch sessions when the component mounts
+    // Fetch sessions once app state hydrates
     useEffect(() => {
-        fetchSessions();
+        const unsubscribe = useAppState.subscribe((state, prevState) => {
+            if (state._hasHydrated && !prevState._hasHydrated) {
+                fetchSessions();
+            }
+        });
+        return unsubscribe;
     }, [fetchSessions]);
 
-    const sidebarClasses = isSidebarOpen 
-        ? 'translate-x-0'
-        : '-translate-x-full md:translate-x-0';
+    const handleDelete = (e: React.MouseEvent, sessionId: string, docName: string) => {
+        e.stopPropagation();
+        if (window.confirm(`Are you sure you want to delete the session for "${docName}"?`)) {
+            clearSession(sessionId);
+        }
+    };
+
+    // --- CRITICAL LAYOUT CLASSES ---
+    const mobileSidebarClasses = isMobileOpen ? "translate-x-0" : "-translate-x-full";
+    const desktopSidebarWidth = isDesktopCollapsed ? "w-20" : "w-80"; // Collapsed (80px) vs Expanded (320px)
 
     return (
-        // 3. Use flex-col and h-full to enable the sticky footer
-        <div 
-            className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 border-r border-gray-800 p-4 transform transition-transform duration-300 ease-in-out flex flex-col ${sidebarClasses}`}
+        <div
+            className={`fixed inset-y-0 left-0 z-40 bg-gray-900 border-r border-gray-800 p-4 transform transition-all duration-300 ease-in-out flex flex-col md:translate-x-0 ${mobileSidebarClasses} ${desktopSidebarWidth}`}
         >
-            {/* Top Section */}
+            {/* 🔹 Top Section */}
             <div>
-                <button 
-                    onClick={toggleSidebar}
+                {/* Mobile Close Button */}
+                <button
+                    onClick={toggleMobileSidebar}
                     className="absolute top-4 right-4 md:hidden text-gray-400 hover:text-white"
                 >
                     <X className="w-6 h-6" />
                 </button>
-                
-                <h2 className="flex items-center text-xl font-bold text-white mt-4 mb-6 md:mt-0">
-                    <Zap className="w-6 h-6 mr-2 text-yellow-400" /> 
-                    Akili AI
-                </h2>
 
-                <button 
-                    onClick={() => setActiveSession(null)} // Setting activeSessionId to null will show the UploadForm
-                    className="flex items-center w-full px-3 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors shadow-md mb-4"
-                    title="Start New Session/Upload New Document"
+                {/* Brand */}
+                <div
+                    className={`flex items-center justify-center text-xl font-bold text-white mt-4 mb-6 md:mt-0 ${
+                        isDesktopCollapsed ? "justify-center" : "justify-start"
+                    }`}
                 >
-                    <PlusCircle className="w-5 h-5 mr-2" />
-                    New Study Session
-                </button>
-            </div>
-
-            {/* Middle Section (Sessions List) */}
-            {/* 4. Use flex-grow to push the footer down and overflow-y-auto to enable scrolling */}
-            <div className="flex-grow overflow-y-auto custom-scrollbar">
-                <h3 className="text-xs text-gray-400 uppercase mb-2">Past Sessions</h3>
-                {sessions.length > 0 ? (
-                    sessions.map((session, index) => (
-                        <div 
-                            key={session.id ?? `${session.document_name}-${index}`} 
-                            onClick={() => setActiveSession(session.id)}
-                            className={`p-2 my-1 rounded-lg cursor-pointer text-white truncate text-sm ${
-                                activeSessionId === session.id ? 'bg-gray-700' : 'hover:bg-gray-700/50'
-                            }`}
-                            title={session.document_name}
-                        >
-                            {session.document_name}
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-sm text-gray-500">No past sessions found.</p>
-                )}
-            </div>
-
-            {/* Bottom Section (Sticky Footer) */}
-            <div className="mt-4">
-                <hr className="border-gray-700 my-4" />
-                <div className="text-sm text-gray-500">
-                    <p className="font-medium mb-1">Akili AI</p>
-                    <p>Powered by Google AI</p>
+                    <Zap className="w-6 h-6 mr-2 text-yellow-400 flex-shrink-0" />
+                    {!isDesktopCollapsed && (
+                        <span className="transition-opacity duration-200">Akili AI</span>
+                    )}
                 </div>
+
+                {/* New Session Button */}
+                <div className="flex justify-center">
+                    <button
+                        onClick={() => setActiveSession(null)}
+                        className={`flex items-center justify-center w-full max-w-[240px] px-3 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors shadow-md ${
+                            isDesktopCollapsed ? "justify-center" : "justify-start"
+                        }`}
+                    >
+                        <PlusCircle className="w-5 h-5 mr-0 md:mr-2 flex-shrink-0" />
+                        {!isDesktopCollapsed && (
+                            <span className="transition-opacity duration-200">New Session</span>
+                        )}
+                    </button>
+                </div>
+
+                {/* Achievements Widget */}
+                <div
+                    className={`mt-4 flex justify-center transition-transform duration-300 ${
+                        isDesktopCollapsed ? "scale-90" : "scale-105"
+                    }`}
+                >
+                    <div className="w-[90%] max-w-[240px]">
+                        <AchievementsWidget isCollapsed={isDesktopCollapsed} />
+                    </div>
+                </div>
+            </div>
+
+            {/* 🔹 Middle Section (Sessions List) */}
+            <div className="flex-grow overflow-y-auto custom-scrollbar mt-4">
+                <h3
+                    className={`text-xs text-gray-400 uppercase mb-2 ${
+                        isDesktopCollapsed ? "text-center" : ""
+                    }`}
+                >
+                    {isDesktopCollapsed ? "..." : "Past Sessions"}
+                </h3>
+                {sessions.map((session) => (
+                    <div
+                        key={session.id}
+                        onClick={() => setActiveSession(session.id)}
+                        className={`group flex items-center justify-between p-2 my-1 rounded-lg cursor-pointer text-white text-sm ${
+                            activeSessionId === session.id
+                                ? "bg-gray-700"
+                                : "hover:bg-gray-700/50"
+                        }`}
+                        title={session.document_name}
+                    >
+                        <span
+                            className={`truncate transition-opacity duration-200 ${
+                                isDesktopCollapsed ? "opacity-0" : "opacity-100"
+                            }`}
+                        >
+                            {session.title}
+                        </span>
+                        {!isDesktopCollapsed && (
+                            <button
+                                onClick={(e) => handleDelete(e, session.id, session.document_name)}
+                                className="ml-2 text-gray-500 opacity-0 group-hover:opacity-100 hover:text-red-400"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* 🔹 Bottom Section (Footer) */}
+            <div className="mt-4 flex-shrink-0">
+                <hr className="border-gray-700 my-4" />
+                <button
+                    onClick={toggleDesktopSidebar}
+                    className="hidden md:flex items-center justify-center w-full p-2 text-gray-400 hover:bg-gray-700 rounded-lg"
+                >
+                    {isDesktopCollapsed ? <ChevronsRight size={20} /> : <ChevronsLeft size={20} />}
+                    {!isDesktopCollapsed && <span className="ml-2 text-sm">Collapse</span>}
+                </button>
+                <hr className="border-gray-700 my-4" />
+                {isDesktopCollapsed ? (
+                    <div className="text-sm text-gray-500 mt-2 text-center">
+                        <p className="font-extrabold mb-1">&copy; Akili</p>
+                    </div>
+                ) : (
+                    <div className="text-sm text-gray-500 mt-2 text-center">
+                        <p className="font-medium mb-1">&copy; Akili</p>
+                        <p>Powered by Google AI</p>
+                    </div>
+                )}
             </div>
         </div>
     );

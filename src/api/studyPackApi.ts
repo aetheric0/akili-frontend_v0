@@ -11,7 +11,7 @@ import { CHAT_ENDPOINT } from "../types";
  * @param message The user's query.
  * @returns The AI's response text.
  */
-export async function sendChatMessageApi(sessionId: string, message: string): Promise<string> {
+export async function sendChatMessageApi(sessionId: string | null, message: string): Promise<string> {
     // Implementing exponential backoff for API calls
     const MAX_RETRIES = 3;
     const INITIAL_DELAY = 1000;

@@ -19,37 +19,52 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   );
 
   useEffect(() => {
-    if (!isUser) {
-      (async () => {
-        const rawText =
-            typeof message.text === "string"
-                ? message.text
-                : ((message.text as any)?.text ?? JSON.stringify(message.text));
+  if (!isUser) {
+    (async () => {
+      let rawText: string;
 
-const html = await formatMarkdownToHTML(rawText);
-        setFormattedText(html);
-      })();
-    }
-  }, [message.text, isUser]);
+      if (typeof message.text === "string") {
+        rawText = message.text;
+      } else if (message.text && typeof message.text === "object") {
+        // ✅ Explicitly cast to a flexible object type
+        const textObj = message.text as Record<string, any>;
+
+        const summary = textObj.summary || textObj.overview;
+        const quiz = textObj.quiz || textObj.questions;
+
+        if (summary || quiz) {
+          rawText = `## Summary\n${summary ?? ""}\n\n## Quiz\n${
+            Array.isArray(quiz)
+              ? quiz.map((q: string, i: number) => `${i + 1}. ${q}`).join("\n\n")
+              : quiz ?? ""
+          }`;
+        } else {
+          // fallback — stringify cleanly
+          rawText = JSON.stringify(textObj, null, 2);
+        }
+      } else {
+        rawText = String(message.text ?? "");
+      }
+
+      const html = await formatMarkdownToHTML(rawText);
+      setFormattedText(html);
+    })();
+  }
+}, [message.text, isUser]);
 
   return (
     <div
       className={`flex flex-col max-w-[90%] sm:max-w-[70%] p-5 rounded-2xl shadow-lg mb-6 ${bubbleClasses}`}
-      style={{
-        lineHeight: "1.75",
-      }}
+      style={{ lineHeight: "1.75" }}
     >
       <span className={`text-xs font-semibold mb-2 ${titleColor}`}>{title}</span>
 
       <div
         className="prose prose-invert prose-sm md:prose-base max-w-none text-gray-100 leading-relaxed"
-        style={{
-          fontSize: "0.95rem",
-        }}
+        style={{ fontSize: "0.95rem" }}
         dangerouslySetInnerHTML={{ __html: formattedText }}
       />
 
-      {/* Optional subtle glow for AI responses */}
       {!isUser && (
         <div className="mt-6 mb-1 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
       )}

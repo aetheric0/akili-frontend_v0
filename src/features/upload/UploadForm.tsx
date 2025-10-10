@@ -1,13 +1,11 @@
 import axios, { AxiosError } from "axios";
 import { Upload, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import ChatInput from "../../components/chat/ChatInput";
 import { useAppState } from "../../context/AuthContext";
 import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage, type SessionInfo } from "../../types";
-import { getOrCreateGuestToken } from "../../utils/guestToken";
 
 const UploadForm: React.FC = () => {
-    const activeSessionId = useAppState(state => state.activeSessionId);
+    const guest_token = useAppState(state => state.guest_token);
     const isLoading = useAppState(state => state.isLoading);
     const uploadError = useAppState(state => state.uploadError);
     const setUploadError = useAppState(state => state.setUploadError);
@@ -18,8 +16,8 @@ const UploadForm: React.FC = () => {
 
 
     
-    const ACCEPTED_FILE_MIMES = 
-        'application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain';
+    // const ACCEPTED_FILE_MIMES = 
+    //     'application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain';
         
     useEffect(() => {
         if (uploadError) {
@@ -36,13 +34,16 @@ const UploadForm: React.FC = () => {
             return;
         }
 
+        if (!guest_token) {
+            setUploadError("User token not initialized. Please refresh the page.")
+            return;
+        }
+
         setIsUploading(true);
         setUploadError(null);
 
         const formData = new FormData();
         formData.append('file', file);
-
-        const guestToken = getOrCreateGuestToken();
 
         try {
             // --- CRITICAL FIX HERE: Ensure we hit the correct /upload/document endpoint ---
@@ -50,7 +51,7 @@ const UploadForm: React.FC = () => {
                 headers: {
                     // Axios automatically sets 'Content-Type: multipart/form-data' 
                     // when sending a FormData object, but explicitly setting it is safer.
-                    'Authorization': `Bearer ${guestToken}`,
+                    'Authorization': `Bearer ${guest_token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });
@@ -89,63 +90,43 @@ const UploadForm: React.FC = () => {
         } finally {
             setIsUploading(false);
         }
-    }, [file, setUploadError, startNewSession]);
+    }, [file, guest_token, setUploadError, startNewSession]);
     
-    const isFormDisabled = activeSessionId !== null;
 
-    const isSubmitDisabled = isFormDisabled || isLoading || isUploading || activeSessionId !== null;
+    const isSubmitDisabled = isLoading || isUploading || !file;
     
     
     return (
-        <div className="w-full">
-            {uploadError && (
-                <div className="mb-2 p-3 text-sm font-medium text-red-100 bg-red-600 rounded-lg">
-                    {uploadError}
-                </div>
-            )}
-            
-            {/* Conditional rendering for the upload form when no session is active */}
-            {!activeSessionId && (
-                <form onSubmit={handleFileUpload} className="flex items-center space-x-2 p-2 bg-gray-800 rounded-lg shadow-inner">
-                    <label 
-                        htmlFor="pdf-upload" 
-                        className={`flex items-center justify-center p-3 rounded-lg cursor-pointer transition-colors ${
-                            isFormDisabled ? 'bg-gray-600 text-gray-400' : 'bg-yellow-600 text-gray-900 hover:bg-yellow-500'
-                        }`}
-                        title="Upload a Document (PDF, DOCX, TXT)"
-                    >
-                        <Upload className="w-5 h-5" />
-                    </label>
-                    <input
-                        id="pdf-upload"
-                        type="file"
-                        accept={ACCEPTED_FILE_MIMES} 
-                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                        className="hidden"
-                        disabled={isSubmitDisabled}
-                    />
-                    
-                    <span className="flex-grow text-sm truncate text-gray-400">
-                        {file ? file.name : "Select a PDF, DOCX, or TXT document..."}
-                    </span>
-
-                    <button
-                        type="submit"
-                        disabled={isSubmitDisabled || !file}
-                        className={`px-4 py-3 rounded-lg font-semibold transition-colors ${
-                            isSubmitDisabled || !file 
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                                : 'bg-blue-600 text-white hover:bg-blue-500'
-                        }`}
-                    >
-                        {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Start Study"}
-                    </button>
-                </form>
-            )}
-            
-            {/* Conditional rendering for the chat input when a session is active */}
-            {activeSessionId && <ChatInput />}
-        </div>
+        <form onSubmit={handleFileUpload} className="flex items-center space-x-2 p-2 bg-gray-800 rounded-lg shadow-inner w-full">
+            <label 
+                htmlFor="pdf-upload"
+                className="flex items-center justify-center p-3 rounded-lg cursor-pointer transition-colors bg-yellow-600 text-gray-900 hover:bg-yellow-500"
+                title="Upload a Document (PDF, DOCX, TXT)" /* ..*/
+            >
+                <Upload className="w-5 h-5" />
+            </label>
+            <input
+                id="pdf-upload"
+                type="file"
+                accept='application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain'
+                onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                className="hidden"
+            />
+            <span className="flex-grow text-sm truncate text-gray-400">
+                {file ? file.name : "Select a document to begin..."}
+            </span>
+            <button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className={`px-4 py-3 rounded-lg font-semibold transition-colors ${
+                    isSubmitDisabled 
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-500'
+                }`}
+            >
+                {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Start Study"}
+            </button>
+        </form>
     );
 };
 export default UploadForm;

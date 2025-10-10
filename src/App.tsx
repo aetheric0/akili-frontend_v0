@@ -1,69 +1,48 @@
-import { useCallback, useEffect, useState } from "react";
-import Header from "./components/ui/Header";
-import PaywallModal from "./components/ui/Modal";
-import { useAppState } from "./context/AuthContext";
+import { useCallback, useState, useEffect } from "react";
 import ChatPage from "./pages/ChatPage";
-import { AKILI_STATE_KEY} from "./types";
 import Sidebar from "./components/ui/Sidebar";
+import { useAppState } from "./context/AuthContext";
 
 const App: React.FC = () => {
-    const isPaid = useAppState(state => state.isPaid);
-    const activeSessionId = useAppState(state => state.activeSessionId);
-    const setLoading = useAppState(state => state.setLoading); 
+    // State for mobile sidebar overlay
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    // New state for desktop sidebar collapse
+    const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
     
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const toggleSidebar = useCallback(() => {
-        setIsSidebarOpen(prev => !prev);
+    const { initializeGuestToken } = useAppState();
+
+    useEffect(() => {
+        initializeGuestToken();
+    }, [initializeGuestToken]);
+
+    const toggleMobileSidebar = useCallback(() => {
+        setIsMobileSidebarOpen(prev => !prev);
     }, []);
 
-    // Session ID Persistence (Save/Load)
-    useEffect(() => {
-        if (activeSessionId) {
-            const sessionData = JSON.stringify({ sessionId: activeSessionId });
-            localStorage.setItem(AKILI_STATE_KEY, sessionData);
-        } else {
-            localStorage.removeItem(AKILI_STATE_KEY); 
-        }
-    }, [activeSessionId]); 
+    const toggleDesktopSidebar = useCallback(() => {
+        setIsDesktopSidebarCollapsed(prev => !prev);
+    }, []);
 
-    // FIX: Clear a potentially stuck 'isLoading' state on load
-    useEffect(() => {
-        if (activeSessionId) {
-            setLoading(false); 
-        }
-    }, [activeSessionId, setLoading]); 
-
+    // Dynamically set the main content's margin based on the desktop sidebar state
+    const mainContentMargin = isDesktopSidebarCollapsed ? 'md:ml-20' : 'md:ml-80';
 
     return (
-        <div className="min-h-screen flex bg-gray-950 text-white font-sans">
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-                * { font-family: 'Inter', sans-serif; }
-            `}</style>
-
+        <div className="h-screen flex bg-gray-950 text-white font-sans">
             <Sidebar 
-                isSidebarOpen={isSidebarOpen} 
-                toggleSidebar={toggleSidebar} 
+                isMobileOpen={isMobileSidebarOpen} 
+                isDesktopCollapsed={isDesktopSidebarCollapsed}
+                toggleMobileSidebar={toggleMobileSidebar}
+                toggleDesktopSidebar={toggleDesktopSidebar}
             />
             
-            <main className="flex-grow flex flex-col overflow-hidden md:ml-64">
-                {isPaid ? (
-                    <ChatPage 
-                        isSidebarOpen={isSidebarOpen} 
-                        toggleSidebar={toggleSidebar} 
-                    />
-                ) : (
-                    <>
-                        <Header toggleSidebar={toggleSidebar} />
-                        <PaywallModal />
-                    </>
-                )}
+            <main className={`flex-grow flex flex-col overflow-hidden ${mainContentMargin} transition-all duration-300`}>
+                <ChatPage toggleSidebar={toggleMobileSidebar} />
             </main>
-             {/* Mobile Overlay for Sidebar */}
-             {isSidebarOpen && (
+
+            {isMobileSidebarOpen && (
                 <div 
                     className="fixed inset-0 z-30 bg-gray-950/70 md:hidden" 
-                    onClick={toggleSidebar}
+                    onClick={toggleMobileSidebar}
                 />
             )}
         </div>
