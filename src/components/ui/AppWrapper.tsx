@@ -39,9 +39,8 @@ const particlesOptions: ISourceOptions = {
         number: {
             density: {
                 enable: true,
-                area: 800, // Corrected from 'area'
             },
-            value: 80,
+            value: 800,
         },
         opacity: { value: 0.2 },
         shape: { type: "circle" },
@@ -54,7 +53,7 @@ const particlesOptions: ISourceOptions = {
 const SPLASH_TEXTS = [
     "Welcome to Akili",
     "Turn Notes into Knowledge",
-    "Gamify 🎮 Level Up Your Learning"
+    "Gamify 🎮 and Level Up Your Learning"
 ];
 
 const TEXT_INTERVAL = 2000;  // 2 seconds
