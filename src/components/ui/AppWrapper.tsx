@@ -40,7 +40,7 @@ const particlesOptions: ISourceOptions = {
             density: {
                 enable: true,
             },
-            value: 800,
+            value: 80,
         },
         opacity: { value: 0.2 },
         shape: { type: "circle" },
@@ -105,7 +105,7 @@ const AppWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
 
     return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full bg-gray-950">
             {init && <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />}
             
             <AnimatePresence>

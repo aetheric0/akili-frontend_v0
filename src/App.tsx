@@ -29,7 +29,7 @@ const App: React.FC = () => {
 
     return (
         <AppWrapper>
-            <div className="h-screen flex bg-gray-950 text-white font-sans">
+            <div className="h-screen flex bg-transparent text-white font-sans">
                 <Sidebar 
                     isMobileOpen={isMobileSidebarOpen} 
                     isDesktopCollapsed={isDesktopSidebarCollapsed}

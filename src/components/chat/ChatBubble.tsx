@@ -9,65 +9,67 @@ interface ChatBubbleProps {
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const isUser = message.role === "user";
   const title = isUser ? "You" : "Akili AI";
-  const bubbleClasses = isUser
-    ? "bg-blue-600 self-end rounded-br-none"
-    : "bg-gray-800 self-start rounded-tl-none border border-gray-700 shadow-[0_0_12px_rgba(255,255,255,0.05)]";
-  const titleColor = isUser ? "text-blue-200" : "text-yellow-400";
+  
+  // User Bubble: A dark, sophisticated slate color with a very subtle highlight border.
+  const userBubbleClasses = "self-end bg-slate-900/60 ring-1 ring-inset ring-white/10";
+
+  // AI Bubble: A gentle vertical gradient with a soft white border and a subtle glow.
+  const aiBubbleClasses = `
+    self-start relative bg-slate-800
+    before:absolute before:inset-[-1px] before:rounded-xl
+    before:bg-gradient-conic before:from-yellow-400/50 before:via-slate-700 before:to-slate-700
+    before:blur-sm before:[animation:spin_5s_linear_infinite]
+  `;
+
+  const bubbleClasses = isUser ? userBubbleClasses : aiBubbleClasses;
+  const titleColor = isUser ? "text-slate-300" : "text-yellow-400"; // Changed user title color
 
   const [formattedText, setFormattedText] = useState<string>(
     isUser ? message.text : ""
   );
 
-  useEffect(() => {
-  if (!isUser) {
+    useEffect(() => {
     (async () => {
       let rawText: string;
 
-      if (typeof message.text === "string") {
-        rawText = message.text;
-      } else if (message.text && typeof message.text === "object") {
-        // ✅ Explicitly cast to a flexible object type
-        const textObj = message.text as Record<string, any>;
-
-        const summary = textObj.summary || textObj.overview;
-        const quiz = textObj.quiz || textObj.questions;
-
-        if (summary || quiz) {
-          rawText = `## Summary\n${summary ?? ""}\n\n## Quiz\n${
-            Array.isArray(quiz)
-              ? quiz.map((q: string, i: number) => `${i + 1}. ${q}`).join("\n\n")
-              : quiz ?? ""
-          }`;
-        } else {
-          // fallback — stringify cleanly
-          rawText = JSON.stringify(textObj, null, 2);
-        }
+      if (isUser) {
+        rawText = message.text as string;
       } else {
-        rawText = String(message.text ?? "");
+        if (typeof message.text === "string") {
+          rawText = message.text;
+        } else if (message.text && typeof message.text === "object") {
+          const textObj = message.text as Record<string, any>;
+          const summary = textObj.summary || textObj.overview;
+          const quiz = textObj.quiz || textObj.questions;
+          
+          if (summary || quiz) {
+            rawText = `## Summary\n${summary ?? ""}\n\n## Quiz\n${
+              Array.isArray(quiz)
+                ? quiz.map((q: string, i: number) => `${i + 1}. ${q}`).join("\n\n")
+                : quiz ?? ""
+            }`;
+          } else {
+            rawText = "```json\n" + JSON.stringify(textObj, null, 2) + "\n```";
+          }
+        } else {
+          rawText = String(message.text ?? "");
+        }
       }
 
       const html = await formatMarkdownToHTML(rawText);
       setFormattedText(html);
     })();
-  }
-}, [message.text, isUser]);
+  }, [message.text, isUser]);
 
   return (
-    <div
-      className={`flex flex-col max-w-[90%] sm:max-w-[70%] p-5 rounded-2xl shadow-lg mb-6 ${bubbleClasses}`}
-      style={{ lineHeight: "1.75" }}
-    >
-      <span className={`text-xs font-semibold mb-2 ${titleColor}`}>{title}</span>
-
-      <div
-        className="prose prose-invert prose-sm md:prose-base max-w-none text-gray-100 leading-relaxed"
-        style={{ fontSize: "0.95rem" }}
-        dangerouslySetInnerHTML={{ __html: formattedText }}
-      />
-
-      {!isUser && (
-        <div className="mt-6 mb-1 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
-      )}
+    <div className={`relative flex flex-col max-w-[90%] sm:max-w-[75%] p-4 rounded-xl shadow-lg mb-4 overflow-hidden ${bubbleClasses}`}>
+     <div className="relative z-10">
+        <span className={`text-xs font-bold mb-2 block ${titleColor}`}>{title}</span>
+        <div
+          className="prose prose-sm prose-invert max-w-none text-slate-300 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: formattedText }}
+        />
+      </div>
     </div>
   );
 };

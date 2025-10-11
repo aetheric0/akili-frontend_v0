@@ -22,7 +22,7 @@ const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) =>
             </div>
             
             {/* The pinned bottom bar shows ChatInput OR the UploadForm */}
-            <div className="w-full p-4 md:p-6 flex justify-center border-t border-gray-800 bg-gray-950 flex-shrink-0">
+            <div className="w-full p-4 md:p-6 flex justify-center border-t border-white/10 bg-transparent backdrop-blur-[2px] flex-shrink-0">
                 <div className="w-full max-w-3xl">
                     {activeSessionId ? <ChatInput /> : <UploadForm />}
                 </div>

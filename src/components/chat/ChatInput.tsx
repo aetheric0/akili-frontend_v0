@@ -21,7 +21,7 @@ const ChatInput: React.FC = () => {
     const isDisabled = false;
 
     return (
-        <form onSubmit={handleSubmit} className="flex space-x-2 p-3 bg-gray-900 rounded-xl shadow-2xl border border-gray-800">
+        <form onSubmit={handleSubmit} className="flex space-x-2 p-3 bg-transparent backdrop-blur-sm rounded-xl shadow-2xl border border-gray-800">
             <input
                 type="text"
                 value={input}

@@ -1,9 +1,22 @@
 module.exports = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        spin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+      },
+      animation: {
+        spin: 'spin 1s linear infinite',
+      },
+      // ------------------------
+    },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }
 
 /** @type {import('tailwindcss').Config} */
@@ -26,3 +39,17 @@ module.exports = {
   },
   plugins: [],
 }
+
+// module.exports = {
+//   content: [
+//     "./index.html",
+//     "./src/**/*.{js,ts,jsx,tsx}",
+//   ],
+//   theme: {
+//     extend: {},
+//   },
+//   plugins: [
+//     require('@tailwindcss/typography'), // You should already have this
+//     require('@tailwindcss/gradient-conic'), // <-- ADD THIS LINE
+//   ],
+// }
