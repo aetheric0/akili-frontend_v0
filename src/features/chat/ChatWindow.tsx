@@ -32,7 +32,7 @@ const ChatWindow: React.FC = () => {
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
             `}</style>
             
-            <div className="flex flex-col space-y-4 pb-24 custom-scrollbar"> 
+            <div className="flex flex-col space-y-4 pb-24 custom-scrollbar px-3"> 
                 
                 {activeSessionId && activeChatHistory.map((msg, index) => (
                     <ChatBubble key={index} message={msg} />
