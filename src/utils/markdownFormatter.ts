@@ -12,8 +12,7 @@ marked.use({
 
 const formatMarkdownToHTML = async (text: string): Promise<string> => {
     const cleaned = text
-      .replace(/\[object Object\]/g, '')
-      .replace(/(#+)([A-Za-z])/g, "$1 $2");
+      .replace(/\[object Object\]/g, '');
 
 
   const html = await marked.parse(cleaned); // await handles both string or Promise<string>

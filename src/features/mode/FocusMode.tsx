@@ -111,13 +111,18 @@ const modalVariants = {
             animate={{
               scale: 1,
               opacity: 1,
-              rotate: isShaking ? [0, -10, 10, -10, 10, 0] : 0,
+              rotate: isShaking ? [0, -15, 15, -15, 15, 0] : 0,
               backgroundColor: isShaking
                 ? ["#1f2937", "#f97316", "#fde68a", "#1f2937"]
                 : "#1f2937",
+              y: isDesktop ? 0 : [0, -8, 0],
             }}
             exit={{ scale: 0, opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{ 
+              duration: 0.8, 
+              ease: "easeInOut",
+              y: { duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
+            }}
             // --- FIX: Restored the correct classes for the orb button ---
             className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-white/10 backdrop-blur-md text-yellow-400 font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:bg-gray-700/70 ${isDesktop ? '' : 'w-14 h-14'}`}
           >
