@@ -1,3 +1,5 @@
+import type { User, Session } from "@supabase/supabase-js";
+
 // -- 0. TYPE DEFINITIONS -------------------------------------------------
 export interface ChatMessage {
     role: 'user' | 'model';
@@ -6,7 +8,7 @@ export interface ChatMessage {
 
 export interface SessionInfo {
     id: string;
-    title: string;
+    document_name: string;
     createdAt?: string;
     [key: string]: any;
 }
@@ -21,6 +23,9 @@ export interface AppState {
     activeSessionId: string | null;
     chatHistories: Record<string, ChatMessage[]>;   
     guest_token: string | null; // Added to store the user's token
+    user: User | null;
+    session: Session | null;
+    isAuthReady: boolean;
 
     // === Gamification State ===
     xp: number;
@@ -34,14 +39,18 @@ export interface AppState {
     chatError: string | null;
 
     // === D. Actions / State Mutators =========================================
-     initializeGuestToken: () => void;
+    initializeGuestToken: () => void;
+    setAuth: (user: User | null, session: Session | null) => void;
+    setAuthReady: (isReady: boolean) => void;
+    getToken: () => Promise<string | null>;
     setHasHydrated: (hydrated: boolean) => void;
     setLoading: (loading: boolean) => void;
-    setGuestToken: (token: string) => void; // Action to set the token
+    initializeAuth: () => void;
     grantAccess: () => void;
     setUploadError: (error: string | null) => void;
     setChatError: (error: string | null) => void;
     fetchSessions: () => Promise<void>;
+    setAuthSession: (user: User | null, session: Session | null) => void;
     setActiveSession: (sessionId: string | null) => void;
     startNewSession: (sessionInfo: SessionInfo, initialMessage: ChatMessage) => void;
     clearSession: (sessionId: string) => Promise<void>;
@@ -49,6 +58,9 @@ export interface AppState {
     sendChatMessage: (message: string) => Promise<void>;
 
     updateXp: (newXp: number) => void;
+    completeFocusSession: () => void;
+    clearGuestState: () => void;
+    signOut: () => void;
 }
 // --- API CONSTANTS ---
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/';

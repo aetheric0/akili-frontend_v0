@@ -5,6 +5,7 @@ import UploadForm from "../features/upload/UploadForm";
 import ChatInput from "../components/chat/ChatInput";
 import EmptyState from "../components/chat/EmptyState";
 import FocusTimer from "../features/mode/FocusMode";
+import ProfileMenu from "../components/ui/ProfileWidget";
 
 const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) => {
     const activeSessionId = useAppState(state => state.activeSessionId);
@@ -13,9 +14,20 @@ const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) =>
         <div className="flex flex-col h-full relative"> 
             <Header toggleSidebar={toggleSidebar} />
 
-            
-            <div className="flex-grow w-full overflow-y-auto custom-scrollbar p-4">
-                {/* Main content area shows ChatWindow OR the EmptyState prompt */}
+                <div className="hidden md:flex justify-end items-center p-4 space-x-4">
+                    <ProfileMenu />
+                    <div className="hidden md:block">
+                    {activeSessionId && <FocusTimer />}
+                    </div>
+                </div>
+                
+                  {activeSessionId && (
+                    <div className="md:hidden">
+                        <FocusTimer />
+                    </div>
+                )}
+                        
+            <div className="flex-grow w-full overflow-y-auto custom-scrollbar p-4 pt-24 md:pt-4">
                 <div className="max-w-3xl mx-auto h-full">
                     {activeSessionId ? <ChatWindow /> : <EmptyState />}
                 </div>
@@ -28,7 +40,7 @@ const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) =>
                 </div>
             </div>
 
-            {activeSessionId && <FocusTimer />}
+            {/* {activeSessionId && <FocusTimer />} */}
         </div>
     );
 };

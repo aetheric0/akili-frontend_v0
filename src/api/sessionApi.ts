@@ -1,18 +1,29 @@
 import axios from "axios";
-import type { SessionInfo } from '../types/index';
-import { getOrCreateGuestToken } from "../utils/guestToken";
+import type { ChatMessage, SessionInfo } from '../types/index';
+//import { getOrCreateGuestToken } from "../utils/guestToken";
 import { HISTORY_ENDPOINT } from "../types/index";
+//import { supabase } from "../lib/supabaseClient";
+import { useAppState } from "../context/AuthContext";
 
-const guestToken = getOrCreateGuestToken();
+const getAuthHeader = async () => {
+    // const { data: { session } } = await supabase.auth.getSession();
+    // const guestToken = getOrCreateGuestToken();
+    // const token = session?.access_token || guestToken;
+
+    const token = await useAppState.getState().getToken();
+
+    if (!token) {
+        console.warn("No authentication token found for API request.")
+        return {};
+    }
+    return {"Authorization": `Bearer ${token}`}
+}
 
 export const getSessionsApi = async (): Promise<SessionInfo[]> => {
     try {
-
-        const response = await axios.get(HISTORY_ENDPOINT, {
-            headers: {
-                Authorization: `Bearer ${guestToken}`
-            }
-        });
+        const headers = await getAuthHeader();
+        if (!headers.Authorization) return [];
+        const response = await axios.get(HISTORY_ENDPOINT, {headers});
         return response.data as SessionInfo[];
     } catch (error) {
         console.error("Failed to fetch sessions:", error);
@@ -20,16 +31,23 @@ export const getSessionsApi = async (): Promise<SessionInfo[]> => {
     }
 }
 
+export const getSessionDetailsApi = async (sessionId: string): Promise<{ history: ChatMessage[] }> => {
+    const headers = await getAuthHeader();
+    if (!headers.Authorization) throw new Error("User not authenticated.");
+
+    const response = await axios.get(`${HISTORY_ENDPOINT}/${sessionId}`, { headers });
+    // The history is nested inside the response data
+    return { history: response.data.history || [] };
+};
+
 export const deleteSessionApi = async (sessionId: string): Promise<void> => {
     try {
-        const response = await axios.delete(`${HISTORY_ENDPOINT}/${sessionId}`, {
+        const headers = await getAuthHeader();
+        if (!headers.Authorization) throw new Error("Cannot delete session: user is not authenticated")
+        await axios.delete(`${HISTORY_ENDPOINT}/${sessionId}`, {
             params: {session_id: sessionId},
-            headers: {
-                Authorization: `Bearer ${guestToken}`
-            }
+            headers: headers,
         });
-        console.log(`Success ${response.status}`)
-        return
     } catch (error) {
         console.error("Failed to delete session", error);
     }

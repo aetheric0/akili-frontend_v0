@@ -120,7 +120,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     isDesktopCollapsed ? "opacity-0" : "opacity-100"
                                 }`}
                             >
-                                {session.title}
+                                {session.title ? (
+                                    session.title
+                                ) : (
+                                    session.document_name
+                                )}
                             </span>
                             {!isDesktopCollapsed && (
                                 <button

@@ -3,6 +3,7 @@ import { Upload, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAppState } from "../../context/AuthContext";
 import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage, type SessionInfo } from "../../types";
+import { supabase } from "../../lib/supabaseClient";
 
 const UploadForm: React.FC = () => {
     const guest_token = useAppState(state => state.guest_token);
@@ -42,6 +43,16 @@ const UploadForm: React.FC = () => {
         setIsUploading(true);
         setUploadError(null);
 
+        const { data: { session }} = await supabase.auth.getSession();
+
+        const token = session?.access_token || guest_token;
+
+        if (!token) {
+            setUploadError("Authentication token is missing. Please refresh.");
+            setIsUploading(false);
+            return;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -51,7 +62,7 @@ const UploadForm: React.FC = () => {
                 headers: {
                     // Axios automatically sets 'Content-Type: multipart/form-data' 
                     // when sending a FormData object, but explicitly setting it is safer.
-                    'Authorization': `Bearer ${guest_token}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });

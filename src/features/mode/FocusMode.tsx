@@ -16,7 +16,7 @@ const FocusTimer = () => {
   const [mode, setMode] = useState<"focus" | "break">("focus");
   const [isShaking, setIsShaking] = useState(false);
 
-  const { activeSessionId, updateXp } = useAppState();
+  const { activeSessionId, updateXp, completeFocusSession } = useAppState();
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const intervalRef = useRef<number | null>(null);
 
@@ -41,6 +41,7 @@ const FocusTimer = () => {
             setIsActive(false); // Stop the timer
             if (mode === "focus") {
               awardXp();
+              completeFocusSession();
               setMode("break");
               return BREAK_DURATION;
             } else {
@@ -55,7 +56,7 @@ const FocusTimer = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isActive, mode, awardXp]);
+  }, [isActive, mode, awardXp, completeFocusSession]);
 
   const handleOrbClick = () => {
     if (isShaking) return;
@@ -101,7 +102,7 @@ const modalVariants = {
   };
 
   return (
-  <div className={`fixed z-50 ${isDesktop ? 'top-5 right-5' : 'bottom-24 right-5'}`}>
+  <div className="relative">
       <AnimatePresence>
         {view === 'orb' && (
           <motion.button
