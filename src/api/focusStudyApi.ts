@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../types';
-import { getOrCreateGuestToken } from '../utils/guestToken'; // Assuming you have a helper for this
+// Assuming you have a helper for this
+import { useAppState } from '../context/AuthContext';
 
 const STUDY_START_ENDPOINT = `${API_BASE_URL}/study/start`;
 const STUDY_END_ENDPOINT = `${API_BASE_URL}/study/end`;
 
 export async function startStudySessionApi(sessionId: string): Promise<void> {
-    const token = getOrCreateGuestToken();
+    const token = await useAppState.getState().getToken();
     if (!token) throw new Error("User token not found.");
 
     await axios.post(STUDY_START_ENDPOINT, { session_id: sessionId }, {
@@ -15,7 +16,7 @@ export async function startStudySessionApi(sessionId: string): Promise<void> {
 }
 
 export async function endStudySessionApi(sessionId: string): Promise<{ new_xp: number }> {
-    const token = getOrCreateGuestToken();
+    const token = await useAppState.getState().getToken();
     if (!token) throw new Error("User token not found.");
 
     const response = await axios.post(STUDY_END_ENDPOINT, { session_id: sessionId }, {

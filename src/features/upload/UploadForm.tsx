@@ -3,14 +3,15 @@ import { Upload, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAppState } from "../../context/AuthContext";
 import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage, type SessionInfo } from "../../types";
-import { supabase } from "../../lib/supabaseClient";
+// import { supabase } from "../../lib/supabaseClient";
 
 const UploadForm: React.FC = () => {
-    const guest_token = useAppState(state => state.guest_token);
-    const isLoading = useAppState(state => state.isLoading);
-    const uploadError = useAppState(state => state.uploadError);
-    const setUploadError = useAppState(state => state.setUploadError);
-    const startNewSession = useAppState(state => state.startNewSession);
+    const { isLoading, uploadError, setUploadError, startNewSession, isAuthReady, getToken } = useAppState();
+    // const guest_token = useAppState(state => state.guest_token);
+    // const isLoading = useAppState(state => state.isLoading);
+    // const uploadError = useAppState(state => state.uploadError);
+    // const setUploadError = useAppState(state => state.setUploadError);
+    // const startNewSession = useAppState(state => state.startNewSession);
 
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -35,29 +36,23 @@ const UploadForm: React.FC = () => {
             return;
         }
 
-        if (!guest_token) {
-            setUploadError("User token not initialized. Please refresh the page.")
-            return;
-        }
-
         setIsUploading(true);
         setUploadError(null);
 
-        const { data: { session }} = await supabase.auth.getSession();
+        // const { data: { session }} = await supabase.auth.getSession();
+        try  {
 
-        const token = session?.access_token || guest_token;
+            const token = await getToken();
 
-        if (!token) {
-            setUploadError("Authentication token is missing. Please refresh.");
-            setIsUploading(false);
-            return;
-        }
+            if (!token) {
+                setUploadError("Authentication token is missing. Please refresh.");
+                setIsUploading(false);
+                return;
+            }
 
-        const formData = new FormData();
-        formData.append('file', file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-        try {
-            // --- CRITICAL FIX HERE: Ensure we hit the correct /upload/document endpoint ---
             const api_response = await axios.post(DOCUMENT_UPLOAD_ENDPOINT, formData, {
                 headers: {
                     // Axios automatically sets 'Content-Type: multipart/form-data' 
@@ -67,7 +62,7 @@ const UploadForm: React.FC = () => {
                 },
             });
 
-            const { session_id, response} = api_response.data;
+            const { session_id, response } = api_response.data;
 
             const sessionInfo: SessionInfo = {
                 id: session_id,
@@ -101,10 +96,10 @@ const UploadForm: React.FC = () => {
         } finally {
             setIsUploading(false);
         }
-    }, [file, guest_token, setUploadError, startNewSession]);
+    }, [file, getToken, setUploadError, startNewSession]);
     
 
-    const isSubmitDisabled = isLoading || isUploading || !file;
+    const isSubmitDisabled = isLoading || isUploading || !file || !isAuthReady;
     
     
     return (
