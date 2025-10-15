@@ -71,7 +71,7 @@ const UploadForm: React.FC = () => {
 
             const sessionInfo: SessionInfo = {
                 id: session_id,
-                title: file.name,
+                document_name: file.name,
                 created_at: new Date().toISOString(),
             }
             
