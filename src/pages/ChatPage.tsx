@@ -14,7 +14,7 @@ const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) =>
         <div className="flex flex-col h-full relative"> 
             <Header toggleSidebar={toggleSidebar} />
 
-                {/* <div className="hidden md:flex justify-end items-center p-4 space-x-4">
+                <div className="hidden md:flex justify-end items-center p-4 space-x-4">
                     <ProfileMenu />
                     <div className="hidden md:block">
                     {activeSessionId && <FocusTimer />}
@@ -25,13 +25,7 @@ const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) =>
                     <div className="md:hidden">
                         <FocusTimer />
                     </div>
-                )} */}
-                {activeSessionId && (
-                <>
-                    <ProfileMenu />
-                    <FocusTimer />
-                </>
-            )}
+                )}
                         
             <div className="flex-grow w-full overflow-y-auto custom-scrollbar p-4 pt-24 md:pt-4">
                 <div className="max-w-3xl mx-auto h-full">
