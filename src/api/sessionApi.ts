@@ -40,6 +40,19 @@ export const getSessionDetailsApi = async (sessionId: string): Promise<{ history
     return { history: response.data.history || [] };
 };
 
+export const createNewChatSessionApi = async (): Promise<SessionInfo | null> => {
+    try {
+        const headers = await getAuthHeader();
+        if (!headers.Authorization) return null;
+        // Call the new backend endpoint
+        const response = await axios.post(`${HISTORY_ENDPOINT}/new-chat`, {}, { headers });
+        return response.data;
+    } catch (error) {
+        console.error("Failed to create new chat session:", error);
+        return null;
+    }
+};
+
 export const deleteSessionApi = async (sessionId: string): Promise<void> => {
     try {
         const headers = await getAuthHeader();

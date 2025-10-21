@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from 'uuid';
 import type { AppState, ChatMessage, SessionInfo } from "../types/index";
 import { sendChatMessageApi } from "../api/studyPackApi";
-import { getSessionsApi, deleteSessionApi, getSessionDetailsApi } from "../api/sessionApi";
+import { getSessionsApi, deleteSessionApi, getSessionDetailsApi, createNewChatSessionApi } from "../api/sessionApi";
 import { supabase } from "../lib/supabaseClient";
 import type { Session, User } from '@supabase/supabase-js';
 
@@ -24,6 +24,7 @@ const initialState = {
   chatError: null,
   sessionsCreated: 0, // Assuming you added this for the free trial
   _hasHydrated: false,
+  mode: 'chat' as 'chat' | 'study',
 };
 
 export const useAppState = create<AppState>()(
@@ -38,6 +39,7 @@ export const useAppState = create<AppState>()(
       setLoading: (loading) => set({ isLoading: loading }),
       setUploadError: (error) => set({ uploadError: error }),
       setChatError: (error) => set({ chatError: error }),
+      setMode: (mode: 'chat' | 'study') => set({ mode }),
       grantAccess: () => set({ isPaid: true }),
       setAuthSession: (user: User | null, session: Session | null) => set({ user, session }),
       setAuthReady: (isReady: boolean) => set({ isAuthReady: isReady }),
@@ -131,9 +133,23 @@ export const useAppState = create<AppState>()(
           set({ activeSessionId: null });
           return;
         }
-        
-        set({ activeSessionId: sessionId, isLoading: true, chatError: null });
-        
+
+        const session = get().sessions.find(s => s.id === sessionId);
+        if (!session) {
+          console.error("Attempted to activate a session that does not exist:", sessionId);
+          return;
+        }
+
+        // Defensively determine the mode to ensure it's always a valid value
+        const newMode = session.mode === 'study' ? 'study' : 'chat';
+        console.log(newMode);
+
+        set({ 
+          activeSessionId: sessionId, 
+          mode: newMode, // <-- This is now robust
+          isLoading: true, 
+          chatError: null 
+        });
         try {
           // Check if we already have the history cached in our state
           if (!get().chatHistories[sessionId]) {
@@ -151,6 +167,29 @@ export const useAppState = create<AppState>()(
         } catch (error) {
           console.error("Failed to fetch session details:", error);
           set({ chatError: "Failed to load chat history." });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      createNewChatSession: async () => {
+        set({ isLoading: true });
+        try {
+          const newSession = await createNewChatSessionApi();
+          if (newSession) {
+            set(state => ({
+              sessions: [newSession, ...state.sessions],
+              activeSessionId: newSession.id,
+              mode: 'chat', // Switch to chat mode automatically
+              chatHistories: {
+                ...state.chatHistories,
+                [newSession.id]: [] // Start with an empty history
+              }
+            }));
+          }
+        } catch (error) {
+          console.error("Failed to create new chat session:", error);
+          set({ chatError: "Could not start a new chat." });
         } finally {
           set({ isLoading: false });
         }
@@ -207,11 +246,20 @@ export const useAppState = create<AppState>()(
           set({ chatError: "No active session." });
           return;
         }
+
+        const activeSession = get().sessions.find(s => s.id === activeSessionId);
+        const isFirstChatMessage = activeSession?.document_name === "New Conversation" && get().chatHistories[activeSessionId]?.length === 0;
+
         set({ isLoading: true, chatError: null });
         get().addMessage({ role: "user", text: message });
         try {
           const aiResponseText = await sendChatMessageApi(activeSessionId, message);
           get().addMessage({ role: "model", text: aiResponseText });
+
+          if (isFirstChatMessage) {
+            console.log("First message sent in a new chat. Refetching sessions to get the new title...")
+            await get().fetchSessions();
+          }
         } catch (error) {
           const errorMessage = (error as Error).message;
           set({ chatError: `Chat Failed: ${errorMessage}` });
@@ -240,6 +288,7 @@ export const useAppState = create<AppState>()(
       name: "akili-chat-storage",
       partialize: (state) => ({
         // ✅ FIX: Ensure the guest_token is persisted
+        mode: state.mode,
         guest_token: state.guest_token,
         sessions: state.sessions,
         activeSessionId: state.activeSessionId,

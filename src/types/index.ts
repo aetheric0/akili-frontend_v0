@@ -26,6 +26,7 @@ export interface AppState {
     user: User | null;
     session: Session | null;
     isAuthReady: boolean;
+    mode: 'chat' | 'study';
 
     // === Gamification State ===
     xp: number;
@@ -47,11 +48,13 @@ export interface AppState {
     setLoading: (loading: boolean) => void;
     initializeAuth: () => void;
     grantAccess: () => void;
+    setMode: (mode: 'chat' | 'study') => void;
     setUploadError: (error: string | null) => void;
     setChatError: (error: string | null) => void;
     fetchSessions: () => Promise<void>;
     setAuthSession: (user: User | null, session: Session | null) => void;
-    setActiveSession: (sessionId: string | null) => void;
+    setActiveSession: (sessionId: string | null) => Promise<void>;
+    createNewChatSession: () => Promise<void>;
     startNewSession: (sessionInfo: SessionInfo, initialMessage: ChatMessage) => void;
     clearSession: (sessionId: string) => Promise<void>;
     addMessage: (message: ChatMessage) => void;

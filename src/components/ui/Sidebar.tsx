@@ -1,8 +1,9 @@
-import { X, Zap, PlusCircle, Trash2, ChevronsLeft, ChevronsRight, ShieldCheck } from "lucide-react";
+import { X, Zap, PlusCircle, Trash2, ChevronsLeft, ChevronsRight, ShieldCheck, MessageSquare, FileText, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAppState } from "../../context/AuthContext";
 import AchievementsWidget from "./AchievementWidget";
 import UpgradeModal from "../payment/UpgradeModal";
+
 
 interface SidebarProps {
     isMobileOpen: boolean;
@@ -17,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     toggleMobileSidebar,
     toggleDesktopSidebar,
 }) => {
-    const { sessions, activeSessionId, setActiveSession, fetchSessions, clearSession } = useAppState();
+    const { sessions, activeSessionId, setActiveSession, fetchSessions, clearSession, mode, setMode, createNewChatSession } = useAppState();
      const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
     // Fetch sessions once app state hydrates
@@ -29,6 +30,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         });
         return unsubscribe;
     }, [fetchSessions]);
+
+    const handleNewSession = () => {
+        // --- THIS IS THE FIX ---
+        if (mode === 'chat') {
+            createNewChatSession();
+        } else { // mode === 'study'
+            // In study mode, clicking "New" clears the active session to show the UploadForm.
+            setActiveSession(null);
+        }
+    };
 
     const handleDelete = (e: React.MouseEvent, sessionId: string, docName: string) => {
         e.stopPropagation();
@@ -57,21 +68,33 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </button>
 
                     {/* Brand */}
-                    <div
-                        className={`flex items-center justify-center text-xl font-bold text-white mt-4 mb-6 md:mt-0 ${
-                            isDesktopCollapsed ? "justify-center" : "justify-start"
-                        }`}
-                    >
-                        <Zap className="w-6 h-6 mr-2 text-yellow-400 flex-shrink-0" />
-                        {!isDesktopCollapsed && (
-                            <span className="transition-opacity duration-200">Akili AI</span>
-                        )}
-                    </div>
+                    {!isDesktopCollapsed && (
+                        <>
+                            <div
+                            className={`flex items-center justify-center text-xl font-bold text-white mt-4 mb-6 md:mt-0 ${
+                                isDesktopCollapsed ? "justify-center" : "justify-start"
+                            }`}
+                            >
+                                <Zap className="w-6 h-6 mr-2 text-yellow-400 flex-shrink-0" />
+                                {!isDesktopCollapsed && (
+                                    <span className="transition-opacity duration-200">Akili AI</span>
+                                )}
+                            </div>
+                            <div className="my-4 p-1 bg-gray-800 rounded-lg flex items-center">
+                                <button onClick={() => setMode('chat')} className={`w-1/2 py-2 text-sm rounded-md flex items-center justify-center transition-colors ${mode === 'chat' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}>
+                                    <MessageSquare size={16} className="mr-2"/> Chat
+                                </button>
+                                <button onClick={() => setMode('study')} className={`w-1/2 py-2 text-sm rounded-md flex items-center justify-center transition-colors ${mode === 'study' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}>
+                                    <FileText size={16} className="mr-2"/> Study
+                                </button>
+                            </div>
+                        </>
+                    )}
 
                     {/* New Session Button */}
                     <div className="flex justify-center">
                         <button
-                            onClick={() => setActiveSession(null)}
+                            onClick={handleNewSession}
                             className={`flex items-center justify-center w-full max-w-[240px] px-3 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors shadow-md ${
                                 isDesktopCollapsed ? "justify-center" : "justify-start"
                             }`}
@@ -115,26 +138,36 @@ const Sidebar: React.FC<SidebarProps> = ({
                             }`}
                             title={session.document_name}
                         >
+                            {/* --- SESSION TYPE MARKER --- */}
+
+
                             <span
-                                className={`truncate transition-opacity duration-200 ${
-                                    isDesktopCollapsed ? "opacity-0" : "opacity-100"
-                                }`}
+                            key={session.id}
+                            className="flex items-center justify-between w-full group px-2 py-1 rounded-md transition"
                             >
-                                {session.title ? (
-                                    session.title
+                            {/* Left side: Icon + Text */}
+                            <div className="flex items-center gap-2 truncate">
+                                {session.mode === 'study' ? (
+                                <FileText size={16} className="text-gray-600 group-hover:text-yellow-400 opacity-70 group-hover:opacity-100 transition-opacity duration-500" />
                                 ) : (
-                                    session.document_name
+                                <MessageCircle size={16} className="text-gray-600 opacity-70 group-hover:text-yellow-400 group-hover:opacity-100 transition-colors duration-500" />
                                 )}
-                            </span>
+                                <span className="truncate">{session.document_name}</span>
+                            </div>
+
+                            {/* Right side: Delete button (appears on hover) */}
                             {!isDesktopCollapsed && (
                                 <button
-                                    onClick={(e) => handleDelete(e, session.id, session.document_name)}
-                                    className="ml-2 text-gray-500 opacity-0 group-hover:opacity-100 hover:text-red-400"
+                                onClick={(e) => handleDelete(e, session.id, session.document_name)}
+                                className="ml-2 text-gray-500 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity"
                                 >
-                                    <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4" />
                                 </button>
                             )}
+                            </span>
+                            
                         </div>
+
                     ))}
                 </div>
 

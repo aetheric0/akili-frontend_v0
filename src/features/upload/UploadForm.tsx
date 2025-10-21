@@ -62,17 +62,19 @@ const UploadForm: React.FC = () => {
                 },
             });
 
-            const { session_id, response } = api_response.data;
-
-            const sessionInfo: SessionInfo = {
-                id: session_id,
-                document_name: file.name,
-                created_at: new Date().toISOString(),
-            }
+            const data = api_response.data as (SessionInfo & { response: string });
             
+            const sessionInfo: SessionInfo = {
+                id: data.session_id,
+                document_name: data.document_name,
+                created_at: data.created_at,
+                mode: data.mode,
+                response: data.response,
+            };
+
             const initialMessage: ChatMessage = { 
                 role: 'model', 
-                text: response || "Document uploaded successfully. Ready to begin!" 
+                text: data.response || "Document uploaded successfully. Ready to begin!" 
             };
 
             startNewSession(sessionInfo, initialMessage);
