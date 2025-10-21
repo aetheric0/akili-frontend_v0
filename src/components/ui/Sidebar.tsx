@@ -80,14 +80,57 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     <span className="transition-opacity duration-200">Akili AI</span>
                                 )}
                             </div>
-                            <div className="my-4 p-1 bg-gray-800 rounded-lg flex items-center">
-                                <button onClick={() => setMode('chat')} className={`w-1/2 py-2 text-sm rounded-md flex items-center justify-center transition-colors ${mode === 'chat' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}>
-                                    <MessageSquare size={16} className="mr-2"/> Chat
+                            {/* --- Mode Selector --- */}
+                            <div className="my-6 grid grid-cols-2 gap-3">
+                                {/* Chat Mode */}
+                                <button
+                                    onClick={() => setMode('chat')}
+                                    className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-300 ${
+                                        mode === 'chat'
+                                            ? 'bg-gradient-to-b from-cyan-500 to-blue-600 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)] scale-105'
+                                            : 'bg-gray-800 border-gray-700 hover:border-cyan-400 hover:scale-102'
+                                    }`}
+                                >
+                                    <MessageSquare
+                                        size={22}
+                                        className={`mb-1 transition-transform duration-300 ${
+                                            mode === 'chat' ? 'text-white scale-110' : 'text-cyan-300 opacity-80'
+                                        }`}
+                                    />
+                                    <span
+                                        className={`text-xs font-medium ${
+                                            mode === 'chat' ? 'text-white' : 'text-gray-400'
+                                        }`}
+                                    >
+                                        Chat
+                                    </span>
                                 </button>
-                                <button onClick={() => setMode('study')} className={`w-1/2 py-2 text-sm rounded-md flex items-center justify-center transition-colors ${mode === 'study' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}>
-                                    <FileText size={16} className="mr-2"/> Study
+
+                                {/* Study Mode */}
+                                <button
+                                    onClick={() => setMode('study')}
+                                    className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-300 ${
+                                        mode === 'study'
+                                            ? 'bg-gradient-to-b from-amber-400 to-orange-500 border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)] scale-105'
+                                            : 'bg-gray-800 border-gray-700 hover:border-amber-400 hover:scale-102'
+                                    }`}
+                                >
+                                    <FileText
+                                        size={22}
+                                        className={`mb-1 transition-transform duration-300 ${
+                                            mode === 'study' ? 'text-white scale-110' : 'text-amber-300 opacity-80'
+                                        }`}
+                                    />
+                                    <span
+                                        className={`text-xs font-medium ${
+                                            mode === 'study' ? 'text-white' : 'text-gray-400'
+                                        }`}
+                                    >
+                                        Study
+                                    </span>
                                 </button>
                             </div>
+
                         </>
                     )}
 
