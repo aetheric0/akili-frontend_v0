@@ -15,8 +15,10 @@ const FocusTimer = () => {
   const [secondsLeft, setSecondsLeft] = useState(FOCUS_DURATION);
   const [mode, setMode] = useState<"focus" | "break">("focus");
   const [isShaking, setIsShaking] = useState(false);
+  
 
-  const { activeSessionId, updateXp, completeFocusSession } = useAppState();
+  const { activeSessionId, updateXp, completeFocusSession, theme } = useAppState();
+  const isDark = theme === "dark";
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const intervalRef = useRef<number | null>(null);
 
@@ -115,7 +117,8 @@ const modalVariants = {
               rotate: isShaking ? [0, -15, 15, -15, 15, 0] : 0,
               backgroundColor: isShaking
                 ? ["#1f2937", "#f97316", "#fde68a", "#1f2937"]
-                : "#1f2937",
+                : isDark ? "#101828" : "#fafaf9",
+              color: isDark ? "#facc15" : "#d97706",
               y: isDesktop ? 0 : [0, -8, 0],
             }}
             exit={{ scale: 0, opacity: 0 }}
@@ -125,11 +128,14 @@ const modalVariants = {
               y: { duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
             }}
             // --- FIX: Restored the correct classes for the orb button ---
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-white/10 backdrop-blur-md text-yellow-400 font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:bg-gray-700/70 ${isDesktop ? '' : 'w-14 h-14'}`}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full border ${
+              isDark ? "border-gray-600" : "border-gray-400"} backdrop-blur-md text-yellow-400 font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:bg-gray-700/70  ${isDesktop ? '' : 'w-14 h-14'}`}
           >
             {isDesktop ? (
               <>
-                <span className="text-sm font-extrabold uppercase tracking-widest drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]">Focus Mode</span>
+                <span className={`text-sm font-extrabold uppercase ${
+                    isDark ? "text-yellow-400" : "text-yellow-700"
+                  } tracking-widest drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]`}>Focus Mode</span>
                 <Clock size={20} />
               </>
             ) : (
@@ -147,9 +153,12 @@ const modalVariants = {
             exit="hidden"
             transition={{ duration: 0.3, ease: "easeOut" }}
             // --- FIX: Restored the correct classes for the modal container ---
-            className={`absolute w-[360px] p-4 bg-gradient-to-br from-gray-900/50 to-gray-800/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col gap-4 ${isDesktop ? 'top-0 right-0' : 'bottom-14 right-0'}`}
+            className={`absolute w-[360px] p-4 ${
+              isDark
+                ? "bg-gradient-to-br from-gray-900/50 to-gray-800/40 border-white/10 text-white"
+                : "bg-gradient-to-br from-white to-gray-300 border-gray-300 text-gray-900"} backdrop-blur-xl border  rounded-2xl shadow-2xl flex flex-col gap-4 ${isDesktop ? 'top-0 right-0' : 'bottom-14 right-0'}`}
           >
-            <div className="flex justify-between items-center text-gray-300">
+            <div className={`flex justify-between items-center text-gray-300 ${isDark ? "text-gray-300" : "text-gray-800" }`}>
               <span className="text-sm uppercase tracking-wider font-bold">{mode} Time</span>
               <button onClick={handleCloseModal} className="text-gray-400 hover:text-white transition">✕</button>
             </div>
@@ -168,7 +177,7 @@ const modalVariants = {
                       />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-mono text-white" style={{ textShadow: '0 0 8px rgba(250, 204, 21, 0.5)' }}>
+                      <span className="text-3xl font-mono" style={{ textShadow: '0 0 8px rgba(250, 204, 21, 0.5)' }}>
                         {minutes.toString().padStart(2, "0")}:{seconds.toString().padStart(2, "0")}
                       </span>
                   </div>

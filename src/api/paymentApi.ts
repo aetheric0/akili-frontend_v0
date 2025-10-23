@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../types';
-import { getOrCreateGuestToken } from '../utils/guestToken';
+import { useAppState } from '../context/AuthContext';
 
 const INITIALIZE_MPESA_ENDPOINT = `${API_BASE_URL}/payments/initialize-mpesa`;
 
@@ -11,7 +11,7 @@ interface MpesaResponse {
 }
 
 export async function initializeMpesaPaymentApi(planName: string, phoneNumber: string): Promise<MpesaResponse> {
-    const token = getOrCreateGuestToken();
+    const token = await useAppState.getState().getToken();
     if (!token) throw new Error("User token not found.");
 
     const response = await axios.post(

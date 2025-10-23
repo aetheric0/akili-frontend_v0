@@ -1,34 +1,59 @@
 import React, { useEffect, useState } from "react";
 import type { ChatMessage } from "../../types";
 import formatMarkdownToHTML from "../../utils/markdownFormatter";
+import { useAppState } from "../../context/AuthContext";
 
 interface ChatBubbleProps {
   message: ChatMessage;
+  studyMode?: boolean;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, studyMode = false }) => {
+  const { theme } = useAppState(); // "light" | "dark"
   const isUser = message.role === "user";
   const title = isUser ? "You" : "Akili AI";
-  
-  // User Bubble: A dark, sophisticated slate color with a very subtle highlight border.
-  const userBubbleClasses = "self-end bg-slate-900/60 ring-1 ring-inset ring-white/10";
 
-  // AI Bubble: A gentle vertical gradient with a soft white border and a subtle glow.
+  // ✨ Light/Dark Theme aware background styling
+  const userBubbleClasses = `
+    self-end relative 
+    ${theme === "dark" ? "bg-slate-900/25" : "bg-gray-100"}
+    backdrop-blur-sm
+    rounded-2xl px-6 py-5
+    max-w-[85%] sm:max-w-[70%]
+    shadow-[0_2px_12px_-3px_rgba(0,0,0,0.25)]
+    ring-1 ring-inset ${studyMode ? "ring-yellow-400/50" : theme === "dark" ? "ring-white/10" : "ring-gray-300/50"}
+  `;
+
+  // 🧠 AI bubble — faint, airy, and now nearly borderless with full width
   const aiBubbleClasses = `
-    self-start relative bg-slate-800
-    before:absolute before:inset-[-1px] before:rounded-xl
-    before:bg-gradient-conic before:from-yellow-400/50 before:via-slate-700 before:to-slate-700
-    before:blur-sm before:[animation:spin_5s_linear_infinite]
+    self-start relative
+    ${theme === "dark" ? "bg-slate-800/10" : "bg-gray-50"}
+    backdrop-blur-sm
+    border ${theme === "dark" ? "border-slate-700/5" : "border-gray-200/20"}
+    rounded-2xl px-7 py-6 
+    w-full sm:max-w-[100%] md:max-w-[90%]
+    shadow-[0_0_14px_-6px_rgba(0,0,0,0.1)]
+    before:absolute before:inset-[-1px] before:rounded-2xl
+    before:bg-gradient-conic before:from-yellow-300/5 before:via-transparent before:to-transparent
+    before:blur-sm before:[animation:spin_10s_linear_infinite]
   `;
 
   const bubbleClasses = isUser ? userBubbleClasses : aiBubbleClasses;
-  const titleColor = isUser ? "text-slate-300" : "text-yellow-400"; // Changed user title color
+  const titleColor = isUser
+    ? theme === "dark"
+      ? "text-slate-200"
+      : "text-gray-900"
+    : theme === "dark"
+      ? "text-yellow-400"
+      : "text-yellow-600";
+
+  const textColor = theme === "dark" ? "text-slate-50/95" : "text-gray-900/90";
 
   const [formattedText, setFormattedText] = useState<string>(
     isUser ? message.text : ""
   );
 
-    useEffect(() => {
+  useEffect(() => {
     (async () => {
       let rawText: string;
 
@@ -41,7 +66,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
           const textObj = message.text as Record<string, any>;
           const summary = textObj.summary || textObj.overview;
           const quiz = textObj.quiz || textObj.questions;
-          
+
           if (summary || quiz) {
             rawText = `## Summary\n${summary ?? ""}\n\n## Quiz\n${
               Array.isArray(quiz)
@@ -62,14 +87,38 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   }, [message.text, isUser]);
 
   return (
-    <div className={`relative flex flex-col max-w-[90%] sm:max-w-[75%] p-4 rounded-xl shadow-lg mb-4 overflow-hidden ${bubbleClasses}`}>
-     <div className="relative z-10">
-        <span className={`text-xs font-bold mb-2 block ${titleColor}`}>{title}</span>
+    <div
+      className={`relative flex flex-col rounded-2xl mb-5 overflow-hidden transition-all duration-200 ease-in-out ${bubbleClasses}`}
+    >
+      <span
+        className={`text-[0.85rem] font-semibold mb-2 tracking-wide ${titleColor}`}
+      >
+        {title}
+      </span>
+
+      <div
+        className={`
+          prose prose-sm max-w-none
+          ${theme === "dark" ? "prose-invert" : ""}
+          text-[1.05rem]
+          leading-[1.9]
+          tracking-[0.015em]
+          ${textColor}
+          font-[460]
+          break-words
+        `}
+        dangerouslySetInnerHTML={{ __html: formattedText }}
+      />
+
+      {!isUser && (
         <div
-          className="prose prose-sm prose-invert max-w-none text-slate-300 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: formattedText }}
+          className={`mt-5 w-full h-[1px] bg-gradient-to-r ${
+            theme === "dark"
+              ? "from-transparent via-slate-700/40 to-transparent"
+              : "from-transparent via-gray-200 to-transparent"
+          }`}
         />
-      </div>
+      )}
     </div>
   );
 };

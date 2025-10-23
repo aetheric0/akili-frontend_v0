@@ -13,6 +13,7 @@ export interface SessionInfo {
     [key: string]: any;
 }
 
+export type Theme = "light" | "dark";
 
 
 // -- 1. GLOBAL APP STATE ----------------------------------------
@@ -27,6 +28,8 @@ export interface AppState {
     session: Session | null;
     isAuthReady: boolean;
     mode: 'chat' | 'study';
+    theme: Theme;
+  
 
     // === Gamification State ===
     xp: number;
@@ -59,6 +62,7 @@ export interface AppState {
     clearSession: (sessionId: string) => Promise<void>;
     addMessage: (message: ChatMessage) => void;
     sendChatMessage: (message: string) => Promise<void>;
+    toggleTheme: () => void;
 
     updateXp: (newXp: number) => void;
     completeFocusSession: () => void;
@@ -66,8 +70,8 @@ export interface AppState {
     signOut: () => void;
 }
 // --- API CONSTANTS ---
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/';
-// export const API_BASE_URL = 'http://localhost:8000';
+// export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/';
+export const API_BASE_URL = 'http://localhost:8000';
 export const DOCUMENT_UPLOAD_ENDPOINT = `${API_BASE_URL}/upload/document`;
 export const CHAT_ENDPOINT = `${API_BASE_URL}/upload/chat`;
 export const HISTORY_ENDPOINT = `${API_BASE_URL}/sessions`;

@@ -27,6 +27,9 @@ const initialState = {
   mode: 'chat' as 'chat' | 'study',
 };
 
+const savedTheme = (localStorage.getItem("theme") as "light" | "dark") || "dark";
+document.documentElement.classList.toggle("dark", savedTheme === "dark");
+
 export const useAppState = create<AppState>()(
   persist(
     (set, get) => ({
@@ -267,6 +270,13 @@ export const useAppState = create<AppState>()(
           set({ isLoading: false });
         }
       },
+      theme: savedTheme,
+      toggleTheme: () => set((state) => {
+        const newTheme: "light" | "dark" = state.theme === "dark" ? "light" : "dark";
+        localStorage.setItem("theme", newTheme);
+        document.documentElement.classList.toggle("dark", newTheme === "dark");
+        return { theme: newTheme };
+      }),
        clearGuestState: () => {
         set({ guest_token: null });
         localStorage.removeItem("guestToken");

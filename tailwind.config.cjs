@@ -1,4 +1,5 @@
 module.exports = {
+  darkMode: 'class',
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
@@ -7,6 +8,12 @@ module.exports = {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
         },
+        colors: {
+          brand: {
+            blue: "#2563eb",
+            yellow: "#facc15"
+          }
+        }
       },
       animation: {
         spin: 'spin 1s linear infinite',

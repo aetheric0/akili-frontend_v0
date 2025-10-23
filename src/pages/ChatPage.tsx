@@ -8,6 +8,7 @@ import FocusTimer from "../features/mode/FocusMode";
 import ProfileMenu from "../components/ui/ProfileWidget";
 import { useEffect } from "react";
 import EmptyState from "../components/chat/EmptyState";
+import ThemeToggleButton from "../components/ui/ThemeToggleButton";
 
 const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) => {
     const { mode, activeSessionId, sessions, setActiveSession, createNewChatSession } = useAppState();
@@ -34,8 +35,18 @@ const ChatPage: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar }) =>
             <Header toggleSidebar={toggleSidebar} />
 
                 <div className="hidden md:flex justify-end items-center p-4 space-x-4">
+                    {/* Theme toggle button */}
+                    <ThemeToggleButton />
+
+                    {/* User Profile */}
                     <ProfileMenu />
-                    {mode === 'study' && activeSessionId && <div className="hidden md:block"><FocusTimer /></div>}
+
+                    {/* Study Mode Focus Timer (if active) */}
+                    {mode === 'study' && activeSessionId && (
+                        <div className="hidden md:block">
+                            <FocusTimer />
+                        </div>
+                    )}
                 </div>
                 
                   {mode === 'study' && activeSessionId && <div className="md:hidden"><FocusTimer /></div>}

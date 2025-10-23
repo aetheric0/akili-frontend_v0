@@ -4,6 +4,7 @@ import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { Zap } from "lucide-react";
 import type { ISourceOptions } from "@tsparticles/engine";
+import { useAppState } from "../../context/AuthContext";
 
 // The particles configuration remains the same
 const particlesOptions: ISourceOptions = {
@@ -59,9 +60,11 @@ const SPLASH_TEXTS = [
 const TEXT_INTERVAL = 2000;  // 2 seconds
 
 const AppWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-     const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("hasVisited"));
+    const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("hasVisited"));
     const [splashTextIndex, setSplashTextIndex] = useState(0);
     const [init, setInit] = useState(false);
+
+    const { theme } = useAppState();
 
    useEffect(() => {
         initParticlesEngine(async (engine) => {
@@ -105,49 +108,49 @@ const AppWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
 
     return (
-        <div className="relative w-full h-full bg-gray-950">
-            {init && <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />}
-            
-            <AnimatePresence>
-                {showSplash && (
-                    <motion.div
-                        key="splash"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-950"
-                    >
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                        >
-                            <Zap className="w-24 h-24 text-yellow-400" />
-                        </motion.div>
-                        
-                        <div className="mt-4 text-3xl font-bold text-white text-center h-10">
-                            <AnimatePresence mode="wait">
-                                <motion.h1
-                                    key={splashTextIndex}
-                                    variants={textVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="exit"
-                                    transition={{ duration: 0.5 }}
-                                >
-                                    {SPLASH_TEXTS[splashTextIndex]}
-                                </motion.h1>
-                            </AnimatePresence>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+        <div className={`relative w-full h-full transition-colors duration-300 
+                   ${theme === "dark" ? "bg-gray-950 text-gray-100" : "bg-white text-gray-900"}`}>
+    {init && <Particles id="tsparticles" options={particlesOptions} className="absolute inset-0 z-0" />}
+    <AnimatePresence>
+      {showSplash && (
+        <motion.div
+          key="splash"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className={`${theme === "dark" ? "bg-gray-950" : "bg-white"} fixed inset-0 z-50 flex flex-col items-center justify-center`}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <Zap className={`w-24 h-24 ${theme === "dark" ? "text-yellow-400" : "text-blue-600"}`} />
+          </motion.div>
 
-            <div className="relative z-10 w-full h-full">
-                {children}
-            </div>
-        </div>
+          <div className={`mt-4 text-3xl font-bold text-center h-10 ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={splashTextIndex}
+                variants={textVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.5 }}
+              >
+                {SPLASH_TEXTS[splashTextIndex]}
+              </motion.h1>
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    <div className="relative z-10 w-full h-full">
+      {children}
+    </div>
+  </div>
     );
 };
 

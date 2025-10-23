@@ -6,7 +6,7 @@ import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage, type SessionInfo } from "..
 // import { supabase } from "../../lib/supabaseClient";
 
 const UploadForm: React.FC = () => {
-    const { isLoading, uploadError, setUploadError, startNewSession, isAuthReady, getToken } = useAppState();
+    const { isLoading, uploadError, setUploadError, startNewSession, isAuthReady, getToken, theme } = useAppState();
     // const guest_token = useAppState(state => state.guest_token);
     // const isLoading = useAppState(state => state.isLoading);
     // const uploadError = useAppState(state => state.uploadError);
@@ -15,6 +15,7 @@ const UploadForm: React.FC = () => {
 
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const isDark = theme === "dark";
 
 
     
@@ -105,7 +106,10 @@ const UploadForm: React.FC = () => {
     
     
     return (
-        <form onSubmit={handleFileUpload} className="flex items-center space-x-2 p-2 bg-gray-800 rounded-lg shadow-inner w-full">
+        <form onSubmit={handleFileUpload} className={`flex items-center space-x-2 p-2 rounded-lg shadow-inner w-full border ${isDark
+          ? "bg-slate-900/40 border-gray-800"
+          : "bg-white border-gray-300"
+        }`}>
             <label 
                 htmlFor="pdf-upload"
                 className="flex items-center justify-center p-3 rounded-lg cursor-pointer transition-colors bg-yellow-600 text-gray-900 hover:bg-yellow-500"
