@@ -4,6 +4,7 @@
 
 import axios, { type AxiosError } from "axios";
 import { CHAT_ENDPOINT } from "../types";
+import { useAppState } from "../context/AuthContext";
 
 /**
  * Sends a chat message to the Akili AI backend for follow-up questions.
@@ -16,12 +17,17 @@ export async function sendChatMessageApi(sessionId: string | null, message: stri
     const MAX_RETRIES = 3;
     const INITIAL_DELAY = 1000;
 
+    const token = await useAppState.getState().getToken()
+
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-            const response = await axios.post(CHAT_ENDPOINT, { 
-                session_id: sessionId, 
-                message: message 
-            });
+            const response = await axios.post(
+                CHAT_ENDPOINT,
+                { session_id: sessionId, message },
+                {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                }
+            );
             const data = response.data as { response: string };
             return data.response || "Received empty response from Akili AI.";
         } catch (error) {
