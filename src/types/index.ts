@@ -49,6 +49,7 @@ export interface AppState {
     getToken: () => Promise<string | null>;
     setHasHydrated: (hydrated: boolean) => void;
     setLoading: (loading: boolean) => void;
+    initializeGuestToken: () => void;
     initializeAuth: () => () => void;
     grantAccess: () => void;
     setMode: (mode: 'chat' | 'study') => void;

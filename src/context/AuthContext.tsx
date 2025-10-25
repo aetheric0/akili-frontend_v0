@@ -49,6 +49,21 @@ export const useAppState = create<AppState>()(
       grantAccess: () => set({ isPaid: true }),
       setAuthSession: (user: User | null, session: Session | null) => set({ user, session }),
       setAuthReady: (isReady: boolean) => set({ isAuthReady: isReady }),
+
+      initializeGuestToken: () => {
+        // This is now just a simple helper function
+        const { user } = get();
+        if (user) return; // Safety check
+        
+        let token = localStorage.getItem("guestToken");
+        if (!token) {
+            token = `guest_${uuidv4()}`;
+            localStorage.setItem("guestToken", token);
+            localStorage.setItem("isGuestSessionActive", "true");
+        }
+        set({ guest_token: token });
+      },
+
       initializeAuth: () => {
         // This is the main startup function. It checks for a real user first.
         supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -81,6 +96,9 @@ export const useAppState = create<AppState>()(
             } else {
               await get().fetchSessions(); // No merge, just fetch data
             }
+          } else if (event === 'SIGNED_OUT') {
+            console.log("User signed out. Initializing new guest session.");
+            get().initializeGuestToken();
           }
         });
 
@@ -302,8 +320,6 @@ export const useAppState = create<AppState>()(
       },
       signOut: async () => {
         await supabase.auth.signOut();
-        // Reset the Zustand store back to its initial empty state
-        set(initialState);
         get().clearGuestState();
         localStorage.removeItem("isGuestSessionActive");
         localStorage.removeItem("guestToken");
