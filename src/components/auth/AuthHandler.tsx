@@ -7,12 +7,12 @@ import { useAppState } from "../../context/AuthContext";
 
 const AuthHandler = () => {
   // Get the functions we need directly from the store's prototype
-  const { fetchSessions, setAuthSession, guest_token, setPendingMerge } = useAppState.getState();
+  const { fetchSessions, setAuth, setPendingMerge } = useAppState.getState();
 
   useEffect(() => {
     // Set the initial user state when the app loads
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthSession(session?.user ?? null, session);
+      setAuth(session?.user ?? null, session);
       if (session) {
         console.log("Existing session found on page load. Fetching data.");
         fetchSessions();
@@ -21,12 +21,12 @@ const AuthHandler = () => {
 
     // Listen for future sign-in or sign-out events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setAuthSession(session?.user ?? null, session);
+      setAuth(session?.user ?? null, session);
 
       if (event === 'SIGNED_IN' && session) {
         console.log("User has signed in. Checking for guest data to merge...");
         
-        if (guest_token && localStorage.getItem("isGuestSessionActive") === "true") {
+        if (localStorage.getItem("isGuestSessionActive") === "true") {
           console.log("Logged in, but an active guest session was detected. Prompting user.");
           setPendingMerge(true);
         }
@@ -36,7 +36,7 @@ const AuthHandler = () => {
   });
 
     return () => subscription.unsubscribe();
-  }, [guest_token, fetchSessions, setAuthSession, setPendingMerge]);
+  }, [fetchSessions, setAuth, setPendingMerge]);
 
   return null; // This component renders nothing
 };

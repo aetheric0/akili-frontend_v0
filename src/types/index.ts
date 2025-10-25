@@ -44,13 +44,12 @@ export interface AppState {
     chatError: string | null;
 
     // === D. Actions / State Mutators =========================================
-    initializeGuestToken: () => void;
     setAuth: (user: User | null, session: Session | null) => void;
     setAuthReady: (isReady: boolean) => void;
     getToken: () => Promise<string | null>;
     setHasHydrated: (hydrated: boolean) => void;
     setLoading: (loading: boolean) => void;
-    initializeAuth: () => void;
+    initializeAuth: () => () => void;
     grantAccess: () => void;
     setMode: (mode: 'chat' | 'study') => void;
     setUploadError: (error: string | null) => void;

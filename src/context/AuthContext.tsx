@@ -51,13 +51,13 @@ export const useAppState = create<AppState>()(
       setAuthReady: (isReady: boolean) => set({ isAuthReady: isReady }),
       initializeAuth: () => {
         // This is the main startup function. It checks for a real user first.
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
           if (session) {
-            console.log("Existing Supabase session found. Fetching user data.");
+            // User is LOGGED IN
             set({ user: session.user, session });
-            get().fetchSessions();
+            await get().fetchSessions();
           } else {
-            console.log("No active user session. Initializing as guest.");
+            // User is a GUEST
             let token = localStorage.getItem("guestToken");
             if (!token) {
                 token = `guest_${uuidv4()}`;
@@ -66,45 +66,25 @@ export const useAppState = create<AppState>()(
             }
             set({ guest_token: token });
           }
+          // 2. Mark auth as ready AFTER the check is complete
+          set({ isAuthReady: true });
         });
 
-        // This listener handles all future auth changes (SIGN_IN, SIGN_OUT)
+        // 3. Set up the listener for FUTURE changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           set({ user: session?.user ?? null, session });
 
           if (event === 'SIGNED_IN' && session) {
-            console.log("User has signed in. Checking for guest data to merge...");
             const guestToken = get().guest_token;
-
             if (guestToken && localStorage.getItem("isGuestSessionActive") === "true") {
-              // The merge logic will be triggered by a component, not here.
+              set({ pendingMerge: true }); // Trigger the merge modal
+            } else {
+              await get().fetchSessions(); // No merge, just fetch data
             }
-            
-            console.log("Fetching user sessions from backend...");
-            await get().fetchSessions();
           }
         });
 
         return () => subscription.unsubscribe();
-      },
-      // setAuthSession: (user: User | null, session: Session | null) => {
-      //   set({user, session});
-      // },
-
-      // ✅ FIX: Added the primary logic for ensuring a token exists on app start
-      initializeGuestToken: () => {
-        const { user } = get();
-
-        if (user) return;
-        
-        let token = localStorage.getItem("guestToken");
-        if (!token) {
-            token = `guest_${uuidv4()}`; // Adds the "guest_" prefix
-            localStorage.setItem("guestToken", token);
-            // This flag tells our AuthHandler to perform a merge later
-            localStorage.setItem("isGuestSessionActive", "true");
-        }
-        set({ guest_token: token });
       },
       getToken: async () => {
         const { session, guest_token } = get();
