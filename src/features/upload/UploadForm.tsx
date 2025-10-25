@@ -3,24 +3,12 @@ import { Upload, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAppState } from "../../context/AuthContext";
 import { DOCUMENT_UPLOAD_ENDPOINT, type ChatMessage, type SessionInfo } from "../../types";
-// import { supabase } from "../../lib/supabaseClient";
 
 const UploadForm: React.FC = () => {
     const { isLoading, uploadError, setUploadError, startNewSession, isAuthReady, getToken, theme } = useAppState();
-    // const guest_token = useAppState(state => state.guest_token);
-    // const isLoading = useAppState(state => state.isLoading);
-    // const uploadError = useAppState(state => state.uploadError);
-    // const setUploadError = useAppState(state => state.setUploadError);
-    // const startNewSession = useAppState(state => state.startNewSession);
-
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const isDark = theme === "dark";
-
-
-    
-    // const ACCEPTED_FILE_MIMES = 
-    //     'application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain';
         
     useEffect(() => {
         if (uploadError) {
@@ -31,20 +19,13 @@ const UploadForm: React.FC = () => {
 
     const handleFileUpload = useCallback(async (event: React.FormEvent) => {
         event.preventDefault();
-        
-        if (!file) {
-            setUploadError("Please select a document to upload.");
-            return;
-        }
+        if (!file) return;
 
         setIsUploading(true);
         setUploadError(null);
 
-        // const { data: { session }} = await supabase.auth.getSession();
-        try  {
-
+        try {
             const token = await getToken();
-
             if (!token) {
                 setUploadError("Authentication token is missing. Please refresh.");
                 setIsUploading(false);
@@ -55,55 +36,47 @@ const UploadForm: React.FC = () => {
             formData.append('file', file);
 
             const api_response = await axios.post(DOCUMENT_UPLOAD_ENDPOINT, formData, {
-                headers: {
-                    // Axios automatically sets 'Content-Type: multipart/form-data' 
-                    // when sending a FormData object, but explicitly setting it is safer.
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
             });
 
-            const data = api_response.data as (SessionInfo & { response: string });
-            
+            const data = api_response.data;
+
+            // --- THIS IS THE FIX ---
+            // 1. Create the SessionInfo object, matching the type EXACTLY.
             const sessionInfo: SessionInfo = {
                 id: data.session_id,
                 document_name: data.document_name,
                 created_at: data.created_at,
                 mode: data.mode,
-                response: data.response,
             };
-
+            
+            // 2. Create the initial message separately.
             const initialMessage: ChatMessage = { 
                 role: 'model', 
-                text: data.response || "Document uploaded successfully. Ready to begin!" 
+                text: data.response || "Document uploaded successfully!" 
             };
 
+            // 3. Pass them as two separate, correct arguments.
             startNewSession(sessionInfo, initialMessage);
             setFile(null); 
             
         } catch (error) {
             const err = error as AxiosError<{ detail?: string }>;
-            let errorMessage = "An unknown network error occurred during upload.";
-            
+            let errorMessage = "An unknown network error occurred.";
             if (err.response) {
-                const detail = err.response.data?.detail;
-                errorMessage = `API Error (${err.response.status}): ${detail || err.message}`;
+                errorMessage = `API Error (${err.response.status}): ${err.response.data?.detail || err.message}`;
             } else if (err.request) {
-                errorMessage = "No response received from server. Check network connection.";
+                errorMessage = "No response from server.";
             } else {
                 errorMessage = `Request Setup Error: ${err.message}`;
             }
-            
             setUploadError("Upload Failed: " + errorMessage);
-
         } finally {
             setIsUploading(false);
         }
     }, [file, getToken, setUploadError, startNewSession]);
     
-
     const isSubmitDisabled = isLoading || isUploading || !file || !isAuthReady;
-    
     
     return (
         <form onSubmit={handleFileUpload} className={`flex items-center space-x-2 p-2 rounded-lg shadow-inner w-full border ${isDark
