@@ -98,7 +98,9 @@ export const useAppState = create<AppState>()(
             }
           } else if (event === 'SIGNED_OUT') {
             console.log("User signed out. Initializing new guest session.");
+            set(initialState);
             get().initializeGuestToken();
+            set({ isAuthReady: true });
           }
         });
 
