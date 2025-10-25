@@ -25,8 +25,9 @@ export interface AppState {
     chatHistories: Record<string, ChatMessage[]>;   
     guest_token: string | null; // Added to store the user's token
     user: User | null;
-    session: Session | null;
     isAuthReady: boolean;
+    session: Session | null;
+    pendingMerge: boolean; 
     mode: 'chat' | 'study';
     theme: Theme;
   
@@ -55,6 +56,9 @@ export interface AppState {
     setUploadError: (error: string | null) => void;
     setChatError: (error: string | null) => void;
     fetchSessions: () => Promise<void>;
+    setPendingMerge: (status: boolean) => void;
+    mergeGuestData: () => Promise<void>;
+    discardGuestData: () => void;
     setAuthSession: (user: User | null, session: Session | null) => void;
     setActiveSession: (sessionId: string | null) => Promise<void>;
     createNewChatSession: () => Promise<void>;
@@ -76,3 +80,4 @@ export const DOCUMENT_UPLOAD_ENDPOINT = `${API_BASE_URL}/upload/document`;
 export const CHAT_ENDPOINT = `${API_BASE_URL}/upload/chat`;
 export const HISTORY_ENDPOINT = `${API_BASE_URL}/sessions`;
 export const AKILI_STATE_KEY = 'akili-ai-session-state'; 
+export const MERGE_GUEST_SESSION_ENDPOINT = `${API_BASE_URL}/auth/merge-guest-session`

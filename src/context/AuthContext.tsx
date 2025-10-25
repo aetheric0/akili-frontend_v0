@@ -6,11 +6,13 @@ import { sendChatMessageApi } from "../api/studyPackApi";
 import { getSessionsApi, deleteSessionApi, getSessionDetailsApi, createNewChatSessionApi } from "../api/sessionApi";
 import { supabase } from "../lib/supabaseClient";
 import type { Session, User } from '@supabase/supabase-js';
+import { MERGE_GUEST_SESSION_ENDPOINT } from "../types";
 
 const initialState = {
   user: null,
   session: null,
   guest_token: null,
+  pendingMerge: false,
   sessions: [],
   isAuthReady: false,
   activeSessionId: null,
@@ -39,6 +41,7 @@ export const useAppState = create<AppState>()(
       // --- ACTIONS ---
       setHasHydrated: (hydrated) => set({ _hasHydrated: hydrated }),
       setAuth: (user: User | null, session: Session | null) => set({ user, session }),
+      setPendingMerge: (status) => set({ pendingMerge: status }),
       setLoading: (loading) => set({ isLoading: loading }),
       setUploadError: (error) => set({ uploadError: error }),
       setChatError: (error) => set({ chatError: error }),
@@ -117,6 +120,41 @@ export const useAppState = create<AppState>()(
         
         // Return the current session token or the guest token
         return session?.access_token || guest_token;
+      },
+
+      mergeGuestData: async () => {
+        const { guest_token, getToken, clearGuestState, fetchSessions } = get();
+        if (!guest_token) {
+          set({ pendingMerge: false });
+          return;
+        }
+
+        try {
+          const token = await getToken();
+          if (!token) throw new Error("User is not authenticated.");
+
+          const response = await fetch(MERGE_GUEST_SESSION_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ guest_token: guest_token }),
+          });
+
+          if (!response.ok) throw new Error("Backend merge failed");
+
+          console.log("Guest data successfully merged.");
+          clearGuestState(); // Clear the old guest ID
+          set({ pendingMerge: false });
+          await fetchSessions(); // Refresh the session list with the merged data
+        } catch (error) {
+          console.error("Failed to merge guest data:", error);
+          set({ pendingMerge: false });
+        }
+      },
+
+      discardGuestData: () => {
+        get().clearGuestState();
+        set({ pendingMerge: false });
+        console.log("Guest data discarded.");
       },
 
       fetchSessions: async () => {

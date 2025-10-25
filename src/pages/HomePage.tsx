@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 import { Navbar } from '../components/ui/Navbar';
 
 // --- Import the new, separate components ---
-import { FeatureSection } from '../components/ui/FeatureSection';
-import { DualModeIcon, GamifiedIcon, AnalyzerIcon } from '../components/ui/FeatureIcons';
+import { FeatureSection } from '../components/landing/FeatureSection';
+import { DualModeIcon, GamifiedIcon, AnalyzerIcon } from '../components/landing/FeatureIcons';
 
 // --- Home Page Component ---
 const HomePage: React.FC = () => {
@@ -50,7 +50,7 @@ const HomePage: React.FC = () => {
 
       {/* --- Section 1: The Hero --- */}
       <div ref={vantaRef} className="h-screen w-full relative">
-        <div className="absolute inset-0 z-10 bg-black/50"></div>
+        <div className="absolute inset-0 z-10 bg-black/70 md:bg-black/50"></div>
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold text-blue-200 mb-10 font-display">
             Stop Reading. <span className="text-yellow-400">Start Learning.</span>
@@ -118,44 +118,38 @@ const HomePage: React.FC = () => {
           description="Upload multiple past exams (PDFs or images), and Akili's AI will analyze the patterns to predict the most likely questions, identify key topics, and generate a new practice exam for you."
         />
       </div>
-      {/* --- Section 5: The "Founder's Story" --- */}
-      <div id="story" className="py-24 px-4 bg-slate-950 relative z-30">
-        <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-8">
-          <img 
-            src="https://i.postimg.cc/5tsFgKSG/hoodiecopy.jpg" 
-            alt="Chrix Eledu, Founder of Akili"
-            className="w-48 h-48 md:w-64 md:h-64 rounded-full object-cover border-4 border-slate-700 shadow-xl"
-          />
-          <div className="text-center md:text-left">
-            <h2 className="text-3xl font-bold text-white mb-4">Founder's Corner</h2>
-            <p className="text-slate-300 leading-relaxed">
-              "I'm a Computer Science student. I built Akili during a high-pressure sprint to solve a problem my friends and I face every day: drowning in lecture notes and PDFs. 
+       {/* Founder's Story */}
+        <section className="py-20 px-6 md:px-12 bg-gray-800">
+          <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8 items-center">
+            <div className="col-span-1">
+              <img src="https://i.postimg.cc/5tsFgKSG/hoodiecopy.jpg" alt="Founder" className="rounded-full w-56 h-56 object-cover border-4 border-white/6" />
+            </div>
+            <div className="col-span-2">
+              <h3 className="text-2xl font-bold mb-3">The Founder’s Story</h3>
+              <p className="text-slate-300 leading-relaxed">
+              "I'm a 300-level Computer Science student at TEAU. I built Akili during a high-pressure sprint to solve a problem my friends and I face every day: drowning in lecture notes and PDFs. 
               <br/><br/>
-              I couldn't find a tool that was smart, fast, and built for how we *actually* study, so I built it myself. This is the tool I wish I had."
+              I couldn't find a tool that was smart, fast, and built for how we *actually* study, so I built it myself. This is the tool I wish I had, and I'm excited to share it with you."
             </p>
-            <a href="https://linkedin.com/in/monarch-of-aether" target="_blank" rel="noopener noreferrer" className="text-yellow-400 font-semibold mt-4 inline-block">
+            <a href="[Your LinkedIn URL]" target="_blank" className="text-yellow-400 font-semibold mt-4 inline-block">
               Follow my journey on LinkedIn &rarr;
             </a>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="py-8 px-6 md:px-12 border-t border-white/6 bg-gray-800">
+          <div className="max-w-6xl mx-auto flex items-center justify-between text-sm text-slate-400">
+            <div>© {new Date().getFullYear()} Akili — Built with ❤️</div>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-white">Privacy</a>
+              <a href="#" className="hover:text-white">Support</a>
+            </div>
+          </div>
+        </footer>
       </div>
-      {/* --- Section 6: Support / "Donation" --- */}
-      <div id="support" className="py-16 px-4 bg-slate-800/50 text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">Support the Akili Movement</h2>
-        <p className="text-slate-300 max-w-xl mx-auto mb-6">
-          Akili is a solo-built project. If you find it useful, please consider supporting its development. Every little bit helps cover server costs and fuel future features.
-        </p>
-        <a 
-          href="[Your 'Buy Me a Coffee' or 'Ko-fi' URL]" 
-          target="_blank"
-          className="px-8 py-3 bg-yellow-400 text-slate-900 font-bold rounded-full hover:bg-yellow-300 transition-colors shadow-lg transform hover:scale-105"
-        >
-          Buy Me a Coffee
-        </a>
-      </div>
-    </div>
   );
 };
 
 export default HomePage;
-
