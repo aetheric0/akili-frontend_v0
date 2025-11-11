@@ -322,7 +322,6 @@ export const useAppState = create<AppState>()(
       },
       signOut: async () => {
         await supabase.auth.signOut();
-        get().clearGuestState();
         localStorage.removeItem("isGuestSessionActive");
         localStorage.removeItem("guestToken");
         localStorage.removeItem("guest_token");
